@@ -203,3 +203,8 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .rtbl td.pos{color:var(--gold-deep)}
 .rtbl td.neg{color:var(--coral)}
 .rtbl tbody tr:hover{background:var(--gold-wash)}
+
+/* 数値表：将来（予測）行 */
+.dtbl tr.fut td{color:var(--ink-faint);background:rgba(164,134,63,.04)}
+.dtbl tr.fut td.num{color:var(--ink-soft)}
+.fbadge{display:inline-block;margin-left:6px;font-family:var(--sans-jp);font-size:.62rem;font-weight:700;color:#fff;background:var(--gold);border-radius:8px;padding:1px 6px;vertical-align:middle;letter-spacing:.04em}

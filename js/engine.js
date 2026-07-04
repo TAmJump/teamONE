@@ -34,10 +34,11 @@
     return base2025 * (natlAging(yf) / NATL_2025);
   }
 
-  // 全国の総人口アンカー（実測：国勢調査＋推計, 千人）。2000→2008ピーク→以降減少の実際の形。
+  // 全国の総人口アンカー（2026までは実測：国勢調査＋推計、2030・2040は社人研 将来推計・中位, 千人）
   var NATIONAL_POP = [
     [2000,126926],[2005,127768],[2008,128084],[2010,128057],
-    [2015,127095],[2020,126146],[2022,124947],[2024,123802],[2026,122600]
+    [2015,127095],[2020,126146],[2022,124947],[2024,123802],[2026,122600],
+    [2030,119125],[2040,111284]
   ];
   // アンカー系列から任意年の人口（人）を線形補間／端は外挿
   function seriesPopAt(series, y){
@@ -148,17 +149,24 @@
     };
   }
 
-  // 2000→現在 の推移系列（人口・高齢化率の推計）
-  function trendSeries(region) {
+  // 2000→現在→2040 の推移系列（現在以降は予測 future:true）
+  function trendSeries(region, toYear) {
+    toYear = toYear || 2040;
     const pts = [];
     const nowYf = yearFrac();
-    for (let y = 2000; y <= Math.floor(nowYf); y++) {
+    const nowY = Math.floor(nowYf);
+    for (let y = 2000; y <= nowY; y++) {
       let aging = Math.min(50, Math.max(8, regionAging(region.aging, y)));
       pts.push({ year: y, pop: regionPop(region, y), aging: +aging.toFixed(1) });
     }
-    // 末尾に「現在」点
+    // 「現在」点
     let agingNow = Math.min(50, Math.max(8, regionAging(region.aging, nowYf)));
     pts.push({ year: +nowYf.toFixed(2), pop: regionPop(region, nowYf), aging: +agingNow.toFixed(1), now: true });
+    // 将来（予測）
+    for (let y = nowY + 1; y <= toYear; y++) {
+      let aging = Math.min(50, Math.max(8, regionAging(region.aging, y)));
+      pts.push({ year: y, pop: regionPop(region, y), aging: +aging.toFixed(1), future: true });
+    }
     return pts;
   }
 
@@ -181,10 +189,12 @@
     if (years.indexOf(2020) === -1 && 2020 < nowY) years.push(2020);
     years.sort(function (a, b) { return a - b; });
 
-    // 数値行を先に作る
+    // 数値行を先に作る（過去〜現在）
     var rows = years.map(function (yy) { return { year: yy, pop: popAt(yy), aging: agAt(yy) }; });
     rows.push({ year: '現在', pop: regionPop(region, nowYf),
                 aging: +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1), now: true });
+    // 将来（予測）: 現在の翌年〜2040年
+    for (var fy = nowY + 1; fy <= 2040; fy += step) rows.push({ year: fy, pop: popAt(fy), aging: agAt(fy), future: true });
     for (var i = 0; i < rows.length; i++) rows[i].delta = i === 0 ? null : rows[i].pop - rows[i - 1].pop;
 
     // 背景は「トピックのある年だけ」：局面が変わった年＋検証済み史実の年（他は空欄）
