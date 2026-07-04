@@ -163,26 +163,53 @@
     var nowYf = yearFrac();
     var nowY  = Math.floor(nowYf);
 
-    // 対象年の配列（2000から隔年、現在は別途）
     var years = [];
     for (var y = 2000; y < nowY; y += step) years.push(y);
-    if (years[years.length - 1] !== 2020 && 2020 <= nowY) { /* 2020は主要年なので必ず含める */ }
     if (years.indexOf(2020) === -1 && 2020 < nowY) years.push(2020);
     years.sort(function (a, b) { return a - b; });
 
-    var rows = [], prev = null, prevAg = null;
-    years.forEach(function (yy) {
-      var pop = popAt(yy), ag = agAt(yy);
-      var d = prev == null ? null : pop - prev;
-      rows.push({ year: yy, pop: pop, aging: ag, delta: d, reason: reasonFor(yy, pop, prev, ag, prevAg, region) + eventFor(yy, region) });
-      prev = pop; prevAg = ag;
+    // 数値行を先に作る
+    var rows = years.map(function (yy) { return { year: yy, pop: popAt(yy), aging: agAt(yy) }; });
+    rows.push({ year: '現在', pop: Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020) * 1000),
+                aging: +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1), now: true });
+    for (var i = 0; i < rows.length; i++) rows[i].delta = i === 0 ? null : rows[i].pop - rows[i - 1].pop;
+
+    // 背景は「トピックのある年だけ」：局面が変わった年＋検証済み史実の年（他は空欄）
+    var prevKey = null;
+    rows.forEach(function (r, i) {
+      var yNum = (typeof r.year === 'number') ? r.year : null;
+      var note = '';
+      if (i === 0) { note = '基準年（2000年）。以降はこの年からの推計。'; prevKey = phaseKey(r, null, region).key; }
+      else {
+        var pk = phaseKey(r, rows[i - 1], region);
+        if (pk.key !== prevKey) { note = pk.text; prevKey = pk.key; }   // 局面が変わった年だけ機序を書く
+      }
+      var ev = yNum != null ? eventFor(yNum, region) : '';
+      if (ev) note = note ? (note + ' ' + ev.trim()) : ev.trim();
+      r.reason = note;   // トピックが無ければ空欄
     });
-    // 現在
-    var popN = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020) * 1000);
-    var agN  = +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1);
-    rows.push({ year: '現在', pop: popN, aging: agN, delta: prev == null ? null : popN - prev, now: true,
-                reason: reasonFor('現在', popN, prev, agN, prevAg, region) });
     return rows;
+  }
+
+  // 局面キー＋その局面の説明（地方産業＋その地域自身の増減率・高齢化段階で決まる＝地域ごとに変わる）
+  function phaseKey(r, prev, region) {
+    var ind  = REGION_IND[region.region] || REGION_IND['関東'];
+    var dPct = (prev && prev.pop > 0) ? (r.pop - prev.pop) / prev.pop * 100 : 0;
+    var ag   = r.aging;
+    var bucket = dPct <= -0.8 ? 'down2' : dPct <= -0.2 ? 'down1' : dPct < 0.2 ? 'flat' : dPct < 0.8 ? 'up1' : 'up2';
+    var band   = ag >= 36 ? 'a3' : ag >= 30 ? 'a2' : 'a1';
+    var key = bucket + (bucket === 'down2' ? ('/' + band) : '');
+    var text;
+    if (bucket === 'down2') {
+      if (band === 'a3')      text = '高齢化が進み、死亡が出生を上回る自然減が主導する局面に。若年層の転出超過も続く。';
+      else if (band === 'a2') text = '若年層の転出超過に少子化が重なり、担い手世代が薄くなる減少局面に。';
+      else                    text = '進学・就職による若年層の域外流出（社会減）が主因の減少局面に。';
+      text += ind.bad + 'も下押し。';
+    } else if (bucket === 'down1') { text = '転出超過と少子化によるゆるやかな減少局面へ。' + ind.bad + 'が影を落とす。'; }
+    else if (bucket === 'flat')    { text = '転入と転出がほぼ拮抗する横ばい局面。自然減が始まりつつある。'; }
+    else if (bucket === 'up1')     { text = '雇用・生活利便の集積による転入がゆるやかな増加を支える局面。地域の強み（' + ind.good + '）も後押し。'; }
+    else                           { text = '都市機能・雇用の集積で転入が続く増加局面。地域の強み（' + ind.good + '）が背景。'; }
+    return { key: key, text: text + '（数字からの推定・断定でない）' };
   }
 
   // ── 検証済みの「史実」イベント（実在の出来事。推定ではなく事実） ──

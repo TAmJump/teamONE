@@ -78,7 +78,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=12"></script>
+<script src="js/engine.js?v=13"></script>
 <script>
 (function(){
   'use strict';
@@ -261,12 +261,12 @@
   // ── 数値表（隔年・人・増減人・背景） ──
   function renderTable(region){
     var rows=MacroEngine.tableRows(region);
-    var note='<div class="dtbl-note">2000年から毎年、実数（人）で表示。四捨五入なし（推計値の生の数字）。<b>増減</b>は「前年からの人口差（人）」。<b>背景</b>は数字から推定される機序（社会減・自然減・産業・雇用など）で、特定の出来事の断定ではありません（独自推計）。加えて、検証できた<b>史実</b>（人口ピーク・リーマン・震災・コロナ、夕張市の財政破綻や原発事故による避難など）はその年に【史実】として付記しています。グラフの人口線は「2000年=100」の指数・固定軸で描いており、地域の人口規模に関わらず縦スケールがズレません。なめらかなのは、モデルが年 '+(region.growth<0?'約'+Math.abs(region.growth).toFixed(2)+'%の逓減':'約'+region.growth.toFixed(2)+'%の変化')+'で連続的に推移するためで、ある年に急変した記録ではありません。</div>';
-    var h=note+'<table class="dtbl"><thead><tr><th>年</th><th>総人口（人）</th><th>増減（人）</th><th>高齢化率</th><th class="rz">背景（数字からの推計解釈）</th></tr></thead><tbody>';
+    var note='<div class="dtbl-note">2000年から毎年、実数（人）で表示。四捨五入なし（推計値の生の数字）。<b>増減</b>は「前年からの人口差（人）」。<b>背景</b>は毎年ではなく、<b>局面が変わった年</b>と<b>検証できた史実の年</b>にだけ表示します（それ以外は空欄）。局面の説明は数字から推定される機序で断定ではありません（独自推計）。史実（人口ピーク・リーマン・震災・コロナ、夕張市の財政破綻や原発事故による避難など）は【史実】として付記。グラフの人口線は「2000年=100」の指数・固定軸で描いており、地域の人口規模に関わらず縦スケールがズレません。なめらかなのは、モデルが年 '+(region.growth<0?'約'+Math.abs(region.growth).toFixed(2)+'%の逓減':'約'+region.growth.toFixed(2)+'%の変化')+'で連続的に推移するためで、ある年に急変した記録ではありません。</div>';
+    var h=note+'<table class="dtbl"><thead><tr><th>年</th><th>総人口（人）</th><th>増減（人）</th><th>高齢化率</th><th class="rz">背景（トピックのある年のみ）</th></tr></thead><tbody>';
     rows.forEach(function(r){
       var d = r.delta==null ? '—' : (r.delta>0?'+':'')+MacroEngine.fmt(r.delta);
       var dc = r.delta==null?'':(r.delta<0?'neg':(r.delta>0?'pos':''));
-      h+='<tr'+(r.now?' class="now"':'')+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td><td class="rz">'+(r.reason||'')+'</td></tr>';
+      h+='<tr'+(r.now?' class="now"':'')+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td><td class="rz">'+(r.reason||'<span style=\'color:var(--ink-faint);opacity:.5\'>—</span>')+'</td></tr>';
     });
     h+='</tbody></table>';
     document.getElementById('dtable').innerHTML=h;
