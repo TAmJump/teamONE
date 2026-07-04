@@ -133,12 +133,20 @@
       pharmacy: fillRate(facilities.pharmacy,  pop,      nat.pharmacy, natPop),
     };
 
+    // 要介護・要支援認定者（介護度別・推計）：65歳以上×全国認定率19.4%を、全国の介護度別割合で按分
+    const CARE_RATE = 0.194;
+    const CARE_SHARE = { '要支援1':0.138, '要支援2':0.137, '要介護1':0.206, '要介護2':0.168, '要介護3':0.133, '要介護4':0.129, '要介護5':0.089 };
+    const careTotal = Math.round(elderlyN * CARE_RATE);
+    const careLevels = {};
+    Object.keys(CARE_SHARE).forEach(function (k) { careLevels[k] = Math.round(careTotal * CARE_SHARE[k]); });
+    const care = { total: careTotal, rate: CARE_RATE, levels: careLevels };
+
     return {
       yearFrac: yf,
       pop, popMale: Math.round(sx.male), popFemale: Math.round(sx.female),
       aging: +aging.toFixed(2), youth: +youth.toFixed(2), working: +working.toFixed(2),
       elderlyN, youthN, workingN, labor,
-      facilities, kamoku, medTotal, fill,
+      facilities, kamoku, medTotal, fill, care,
       per: {
         clinic: rpf(facilities.clinic),
         hospital: rpf(facilities.hospital),

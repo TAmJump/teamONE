@@ -215,3 +215,7 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .rtbl tr.natl td{background:var(--ink);color:var(--paper-warm);font-weight:700;border-bottom:2px solid var(--gold)}
 .rtbl tr.natl td.pf{color:#fff}
 .rtbl tr.natl td.rk{color:var(--gold)}
+
+/* 指標の見方ノート */
+.note2small{font-size:.82rem;color:var(--ink-soft);line-height:1.85;background:var(--gold-wash);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0;margin:0 0 20px}
+.note2small b{color:var(--gold-deep)}

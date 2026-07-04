@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=15">
+<link rel="stylesheet" href="css/app.css?v=16">
 </head>
 <body>
 
@@ -54,6 +54,13 @@
       <div class="cards" id="cards"></div>
 
       <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
+        <div class="lbl">要介護・要支援 認定者数（介護度別・推計）</div>
+        <div id="carelvl"></div>
+      </div>
+
+      <div class="note2small" id="indicatorNote"></div>
+
+      <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
         <div class="lbl">診療科目別 診療所数（標榜・推計）</div>
         <div class="barlist" id="kamoku"></div>
       </div>
@@ -88,7 +95,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=16"></script>
+<script src="js/engine.js?v=17"></script>
 <script>
 (function(){
   'use strict';
@@ -297,9 +304,9 @@
       {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
       {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人 ／ '+fb(e.fill.shafuku)+'（人口あたり・全国平均=100）'},
       {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)+' ／ '+fb(e.fill.kaigo)+'（高齢者あたり・全国平均=100）'},
-      {lbl:'医療機関', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)},
+      {lbl:'医療機関（歯科含む）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)+'（医療法上は歯科診療所も医療機関）'},
       {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国平均=100）'},
-      {lbl:'医療アクセス（住民あたり）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所 ／ '+fb(e.fill.clinic)+'（診療所・全国平均=100）'},
+      {lbl:'医療アクセス（住民あたり施設密度）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所 ／ '+fb(e.fill.clinic)+'（診療所・全国平均=100）'},
     ];
     var wrap=document.getElementById('cards'); wrap.innerHTML='';
     cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
@@ -316,8 +323,33 @@
     renderTable(region);
     renderHistory(region, e);
     renderRings(region, e);
+    renderCare(e);
+    renderIndicatorNote();
     fitBig();
     countUp();
+  }
+
+  // 要介護・要支援 認定者（介護度別・推計）
+  function renderCare(e){
+    var c=e.care, lv=c.levels;
+    var keys=['要支援1','要支援2','要介護1','要介護2','要介護3','要介護4','要介護5'];
+    var colors=['#d9c48a','#cbb06a','#b89a52','#a4863f','#8a6f32','#6f5926','#4f3f1a'];
+    var max=Math.max.apply(null,keys.map(function(k){return lv[k];}))||1;
+    var bar='<div style="display:flex;height:22px;border-radius:4px;overflow:hidden;margin:8px 0 12px">';
+    keys.forEach(function(k,i){ bar+='<div title="'+k+' '+MacroEngine.fmt(lv[k])+'人" style="width:'+(lv[k]/c.total*100)+'%;background:'+colors[i]+'"></div>'; });
+    bar+='</div>';
+    var head='<div class="num" style="font-family:var(--serif-en);font-weight:500;font-size:clamp(1.5rem,3.5vw,2.1rem);color:var(--ink);line-height:1">'+MacroEngine.fmt(c.total)+'<small style="font-family:var(--serif-jp);font-size:.8rem;color:var(--ink-soft);margin-left:4px">人（65歳以上の約'+(c.rate*100).toFixed(0)+'％＝全国認定率）</small></div>';
+    var list='<div class="barlist" style="margin-top:6px">';
+    keys.forEach(function(k,i){ list+='<div class="b"><div class="nm">'+k+'</div><div class="tr"><div class="fl" style="width:'+(lv[k]/max*100)+'%;background:'+colors[i]+'"></div></div><div class="vl num">'+MacroEngine.fmt(lv[k])+'</div></div>'; });
+    list+='</div>';
+    document.getElementById('carelvl').innerHTML=head+bar+list+
+      '<div style="font-size:.74rem;color:var(--ink-faint);margin-top:6px;line-height:1.7">推計：65歳以上人口 ×「全国の要支援・要介護認定率19.4%」を、全国の介護度別割合で按分（独自推計）。第2号被保険者（40〜64歳）は含みません。最多は要介護1。</div>';
+  }
+
+  // この指標の見方（分母・数値の限界）
+  function renderIndicatorNote(){
+    var el=document.getElementById('indicatorNote'); if(!el) return;
+    el.innerHTML='<b>この指標の見方</b>：数値は施設・法人の「数」と「人口あたり密度」の推計です。<b>供給充足率</b>は全国平均を100とした、人口（介護・要介護は高齢者）あたり供給量の比＝<b>密度の目安</b>で、医療・介護の<b>質・救急体制（一次/二次救急）・診療科の充実度</b>そのものではありません。 <b>社会福祉法人</b>は法人数（児童・障害福祉も担うため分母は総人口）。<b>特養・老健</b>は施設数で、特養は主に社会福祉法人、老健は主に医療法人が運営します。<b>医療機関</b>は医療法上、病院・一般診療所に加え歯科診療所も含みます。';
   }
 
   // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──
