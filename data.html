@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地域データ ｜ TAmJ 地域共生インテリジェンス</title>
+<meta name="description" content="全国の市区町村単位で、人口・年齢・労働人口・高齢化率・社会福祉法人数・介護事業所数・医療機関数（診療科目別）・薬局数を、公式統計アンカーから今日の日付へ日次補間した独自マクロ推計として表示。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="bar">
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">TAmJ 地域共生インテリジェンス<span class="en">Community Intelligence — for local welfare</span></a>
+    <nav class="topnav">
+      <a href="index.html">ホーム</a>
+      <a href="data.html" class="on">地域データ</a>
+      <a href="impact.html">経済と投資</a>
+    </nav>
+  </div>
+  <div class="ticker"><div class="row" id="ticker"></div></div>
+</header>
+
+<div class="wrap">
+  <section class="intro">
+    <div class="eyebrow">Nationwide ・ Municipality-level ・ Updated daily</div>
+    <h1>全国の「現在地」を、独自推計で。</h1>
+    <p class="mincho">国勢調査・住民基本台帳・医療施設調査・社会福祉法人集計——公式統計は数値が2〜3年前で止まる。ここでは、それらのアンカー値を<b>今日の日付へ日次で補間</b>し、<b>全国すべての市区町村</b>の人口・年齢・労働人口・高齢化率・社福数・介護事業所数・医療機関数（診療科目別）・薬局数を、TAmJの<b>独自マクロ推計</b>として提示する。人口と長期変化率は国勢調査（実測）に基づき、2000年からの推移とあわせて現在地を読む。</p>
+    <span class="est-tag" id="esttag">推計基準日：—</span>
+  </section>
+
+  <div class="selector">
+    <div class="fld"><label>都道府県（入力して検索）</label>
+      <input id="selPref" list="prefList" placeholder="例：北海道 ／ 東京都 ／ 高知県" autocomplete="off">
+      <datalist id="prefList"></datalist>
+    </div>
+    <div class="fld"><label>市区町村（任意・入力して検索）</label>
+      <input id="selMuni" list="muniList" placeholder="都道府県を選ぶと候補が出ます" autocomplete="off">
+      <datalist id="muniList"></datalist>
+    </div>
+  </div>
+
+  <div class="dash" id="dash">
+    <div class="area-head">
+      <h2 id="areaName">全国</h2>
+      <span class="pref" id="areaPref"></span>
+      <span class="asof" id="asof"></span>
+    </div>
+      <div class="cards" id="cards"></div>
+
+      <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
+        <div class="lbl">診療科目別 診療所数（標榜・推計）</div>
+        <div class="barlist" id="kamoku"></div>
+      </div>
+
+      <div class="trend">
+        <h3>人口と高齢化率の推移（2000 → 現在）</h3>
+        <div class="cap" id="trendCap">独自推計。<span style="color:#3f6fa3;font-weight:600">青＝人口（千人）</span>、<span style="color:#c0524a;font-weight:600">赤＝高齢化率（%）</span>。</div>
+        <div id="chart"></div>
+        <div class="lg"><span><span class="dot" style="background:#3f6fa3"></span>人口</span><span><span class="dot" style="background:#c0524a"></span>高齢化率</span></div>
+      </div>
+
+      <div class="note" id="rings"></div>
+  </div>
+</div>
+
+<footer class="site">
+  <div class="brand">タムジ株式会社 ｜ TAmJ.Corp — 地域インテリジェンス</div>
+  <div>本サービスの数値は<b style="color:rgba(250,248,244,.85)">独自マクロ推計</b>です。人口・高齢化率は公式統計のアンカー値に基づき、施設数・労働人口・現在値は、それらを今日の日付へ補間・按分した推計であり、確定値ではありません。実務判断は一次統計・現地確認と併用してください。</div>
+  <div class="src" id="sources"></div>
+</footer>
+
+<script src="js/engine.js"></script>
+<script>
+(function(){
+  'use strict';
+  var DATA=null, META=null, cur=null;
+
+  // ── データ読み込み ──
+  fetch('data/regions.json').then(function(r){return r.json();}).then(function(d){
+    DATA=d; META=d.meta;
+    var cov=META.coverage||{}; 
+    document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP')+'　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村を収録';
+    document.getElementById('sources').textContent='出典（アンカー）：'+ (META.sources||[]).join(' / ');
+    initSelectors(); renderTicker(); renderNational();
+  }).catch(function(e){
+    document.getElementById('esttag').textContent='データ読込エラー';
+  });
+
+  // ── セレクタ（検索式 datalist） ──
+  function initSelectors(){
+    var pl=document.getElementById('prefList'); pl.innerHTML='';
+    DATA.prefectures.forEach(function(p){ var o=document.createElement('option'); o.value=p.name; pl.appendChild(o); });
+    var selP=document.getElementById('selPref'), selM=document.getElementById('selMuni');
+    selP.addEventListener('input',function(){
+      var pref=this.value.trim();
+      if(DATA.prefectures.some(function(p){return p.name===pref;})){ fillMuni(pref); selM.value=''; onSelect(); }
+    });
+    selP.addEventListener('change', onSelect);
+    selM.addEventListener('input', onSelect);
+    selM.addEventListener('change', onSelect);
+  }
+  function fillMuni(pref){
+    var ml=document.getElementById('muniList'); ml.innerHTML='';
+    DATA.municipalities.filter(function(m){return m.pref===pref;})
+      .sort(function(a,b){return b.pop2020-a.pop2020;})
+      .forEach(function(m){ var o=document.createElement('option'); o.value=(m.disp||m.name); ml.appendChild(o); });
+  }
+  function onSelect(){
+    var pref=document.getElementById('selPref').value.trim();
+    var muniTxt=document.getElementById('selMuni').value.trim();
+    if(!DATA.prefectures.some(function(p){return p.name===pref;})){ return; }
+    var region, prefLabel='', name;
+    if(muniTxt){
+      region=DATA.municipalities.find(function(m){return m.pref===pref&&(m.disp===muniTxt||m.name===muniTxt);});
+      if(region){ prefLabel=pref; name=(region.disp||region.name); }
+    }
+    if(!region){ region=DATA.prefectures.find(function(p){return p.name===pref;}); name=region.name; prefLabel=''; }
+    if(region) renderArea(region, prefLabel, name);
+  }
+
+  // ── ティッカー（全国 現在推計） ──
+  function renderTicker(){
+    var natl={name:'全国',region:'全国',pop2020:META.national.pop2020,aging:META.national.aging2025,youth:META.national.youth2025,growth:-0.5,
+      facilities:{shafuku:META.national.shafuku,hospital:META.national.hospital,clinic:META.national.clinic,dental:META.national.dental,pharmacy:META.national.pharmacy,kaigo:META.national.kaigo,tokuyo:META.national.tokuyo,roken:META.national.roken}};
+    var e=MacroEngine.estimateToday(natl,META);
+    var items=[
+      ['総人口', MacroEngine.fmtMan(e.pop),'人'],
+      ['高齢化率', e.aging.toFixed(1),'%'],
+      ['社会福祉法人', MacroEngine.fmt(e.facilities.shafuku),'法人'],
+      ['病院', MacroEngine.fmt(e.facilities.hospital),'施設'],
+      ['介護事業所', MacroEngine.fmt(e.facilities.kaigo),'所'],
+      ['薬局', MacroEngine.fmt(e.facilities.pharmacy),'店'],
+    ];
+    var row=document.getElementById('ticker'); row.innerHTML='';
+    items.forEach(function(it){ var d=document.createElement('div'); d.className='t';
+      d.innerHTML='<div class="k">'+it[0]+'</div><div class="v">'+it[1]+'<small>'+it[2]+'</small></div>'; row.appendChild(d); });
+    var upd=document.createElement('div'); upd.className='upd'; upd.textContent='updated '+new Date().toISOString().slice(0,10); row.appendChild(upd);
+  }
+
+  function renderNational(){
+    var natl={name:'全国',region:'全国',pop2020:META.national.pop2020,aging:META.national.aging2025,youth:META.national.youth2025,growth:-0.5,
+      facilities:{shafuku:META.national.shafuku,hospital:META.national.hospital,clinic:META.national.clinic,dental:META.national.dental,pharmacy:META.national.pharmacy,kaigo:META.national.kaigo,tokuyo:META.national.tokuyo,roken:META.national.roken}};
+    renderArea(natl,'','全国');
+  }
+
+  // ── ダッシュボード描画 ──
+  function renderArea(region, prefLabel, name){
+    cur=region;
+    var e=MacroEngine.estimateToday(region,META);
+    document.getElementById('areaName').textContent=name;
+    document.getElementById('areaPref').textContent=prefLabel?('（'+prefLabel+'）'):'';
+    document.getElementById('asof').textContent='現在推計値 ／ '+new Date().toLocaleDateString('ja-JP')+' 時点';
+
+    var mPct=(e.popMale/e.pop*100), fPct=100-mPct;
+    var cards=[
+      {lbl:'総人口', big:MacroEngine.fmt(e.pop), unit:'人',
+        html:'<div class="splitbar"><div class="m" style="width:'+mPct+'%"></div><div class="f" style="width:'+fPct+'%"></div></div>'+
+             '<div class="splitbar-legend"><span><span class="dot" style="background:var(--male)"></span>男 '+MacroEngine.fmtMan(e.popMale)+'</span><span><span class="dot" style="background:var(--female)"></span>女 '+MacroEngine.fmtMan(e.popFemale)+'</span></div>'},
+      {lbl:'高齢化率', big:e.aging.toFixed(1), unit:'%',
+        html:'<div class="age3"><div class="y" style="width:'+e.youth+'%"></div><div class="w" style="width:'+e.working+'%"></div><div class="e" style="width:'+e.aging+'%"></div></div>'+
+             '<div class="age3-legend"><span><span class="dot" style="background:var(--gold);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>年少 '+e.youth.toFixed(1)+'%</span><span><span class="dot" style="background:var(--ink-faint);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>生産年齢 '+e.working.toFixed(1)+'%</span><span><span class="dot" style="background:var(--gold-deep);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>老年 '+e.aging.toFixed(1)+'%</span></div>'},
+      {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
+      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'人口10万対 '+e.per.shafukuPer10k},
+      {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)},
+      {lbl:'医療機関', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)},
+      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'人口10万対 '+e.per.pharmacyPer10k},
+      {lbl:'医療密度（10万対）', big:e.per.clinicPer10k.toFixed(1), unit:'診療所', sub:'病院 '+e.per.hospitalPer10k+' ／ 介護 '+e.per.kaigoPer10k},
+    ];
+    var wrap=document.getElementById('cards'); wrap.innerHTML='';
+    cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
+      d.innerHTML='<div class="lbl">'+c.lbl+'</div><div class="big num" data-count="'+(c.big.replace(/,/g,''))+'">'+c.big+'<small>'+c.unit+'</small></div>'+(c.html||'')+(c.sub?'<div class="sub">'+c.sub+'</div>':'');
+      wrap.appendChild(d); });
+
+    // 診療科目
+    var km=e.kamoku, keys=Object.keys(km).sort(function(a,b){return km[b]-km[a];});
+    var maxK=km[keys[0]]||1, kb=document.getElementById('kamoku'); kb.innerHTML='';
+    keys.forEach(function(k){ var b=document.createElement('div'); b.className='b';
+      b.innerHTML='<div class="nm">'+k+'</div><div class="tr"><div class="fl" style="width:'+(km[k]/maxK*100)+'%"></div></div><div class="vl num">'+MacroEngine.fmt(km[k])+'</div>'; kb.appendChild(b); });
+
+    drawChart(region);
+    renderRings(region, e);
+    countUp();
+  }
+
+  // ── 診療圏/介護圏ノート ──
+  function renderRings(region, e){
+    var el=document.getElementById('rings');
+    var lvl = e.aging>=34 ? '全国平均を大きく上回る' : (e.aging>=29 ? '全国平均並み' : '全国平均を下回る');
+    el.innerHTML='<b>診療圏 × 介護圏</b> ── 二次医療圏（入院を含む一般医療の完結単位／全国約335圏域）と日常生活圏域（概ね中学校区・30分でサービス到達）を重ねて捉える。'+
+      'この地域の高齢化率は'+e.aging.toFixed(1)+'%で<b>'+lvl+'</b>。人口10万対の一般診療所は'+e.per.clinicPer10k.toFixed(1)+'。'+
+      '医療機関・事業所が相対的に少ない地域ほど、圏内の競合は薄く、一施設あたりの担い手価値は高くなりやすい——都市の密度ではなく、圏の余白に張るという読み方ができる。';
+  }
+
+  // ── 推移チャート（SVG デュアル軸） ──
+  function drawChart(region){
+    var pts=MacroEngine.trendSeries(region);
+    var W=920,H=320,pl=54,pr=54,pt=20,pb=34;
+    var xs=pts.map(function(p){return p.year;});
+    var minX=xs[0],maxX=xs[xs.length-1];
+    var pops=pts.map(function(p){return p.pop;}), ages=pts.map(function(p){return p.aging;});
+    var minP=Math.min.apply(null,pops)*0.95,maxP=Math.max.apply(null,pops)*1.02;
+    var minA=0,maxA=Math.max(50,Math.max.apply(null,ages)*1.1);
+    function X(x){return pl+(x-minX)/(maxX-minX)*(W-pl-pr);}
+    function YP(v){return pt+(1-(v-minP)/(maxP-minP))*(H-pt-pb);}
+    function YA(v){return pt+(1-(v-minA)/(maxA-minA))*(H-pt-pb);}
+    function path(vals,Y){return vals.map(function(v,i){return (i?'L':'M')+X(xs[i]).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');}
+    var grid='';
+    for(var gy=0;gy<=5;gy++){var yy=pt+gy/5*(H-pt-pb);grid+='<line x1="'+pl+'" y1="'+yy+'" x2="'+(W-pr)+'" y2="'+yy+'" stroke="#ded7c9" stroke-width="1"/>';}
+    var xticks='';
+    [2000,2005,2010,2015,2020,Math.floor(maxX)].forEach(function(yr){ if(yr>=minX&&yr<=maxX){ xticks+='<text x="'+X(yr)+'" y="'+(H-10)+'" fill="#8b857b" font-size="11" text-anchor="middle" font-family="Fraunces,serif">'+yr+'</text>'; }});
+    var last=pts[pts.length-1];
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+grid+xticks+
+      '<path d="'+path(pops,YP)+'" fill="none" stroke="#3f6fa3" stroke-width="2.6"/>'+
+      '<path d="'+path(ages,YA)+'" fill="none" stroke="#c0524a" stroke-width="2.6"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#3f6fa3"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#c0524a"/>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#3f6fa3" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#c0524a" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
+      '</svg>';
+    document.getElementById('chart').innerHTML=svg;
+  }
+
+  // ── カウントアップ演出 ──
+  function countUp(){
+    document.querySelectorAll('.big[data-count]').forEach(function(el){
+      var target=parseFloat(el.getAttribute('data-count')); if(isNaN(target))return;
+      var small=el.querySelector('small'), suffix=small?small.outerHTML:'';
+      var dur=680,t0=performance.now(), dec=(target%1!==0)?1:0;
+      function step(now){var k=Math.min(1,(now-t0)/dur);var v=target*(1-Math.pow(1-k,3));
+        el.innerHTML=(dec?v.toFixed(1):Math.round(v)).toLocaleString('ja-JP')+suffix;
+        if(k<1)requestAnimationFrame(step);}
+      requestAnimationFrame(step);
+    });
+  }
+})();
+</script>
+</body>
+</html>

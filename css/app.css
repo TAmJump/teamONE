@@ -3,10 +3,12 @@
    白背景 / gold #a4863f / Fraunces + Zen Old Mincho + Zen Kaku Gothic
    ============================================================ */
 :root{
-  --ink:#1b1a17;--ink-soft:#4a4640;--ink-faint:#8b857b;
-  --paper:#ffffff;--paper-warm:#faf8f4;--paper-line:#ebe6dd;
-  --gold:#a4863f;--gold-deep:#856a2c;--gold-wash:#f5efe1;
-  --rule:#ded7c9;--alert:#8a3b2f;--pos:#4d6b41;--male:#6b7f92;--female:#b98a5e;
+  --ink:#3a352d;--ink-soft:#655e52;--ink-faint:#9a9184;
+  --paper:#fdfbf7;--paper-warm:#f5efe4;--paper-line:#efe8db;
+  --gold:#6f8b6e;--gold-deep:#4f6b52;--gold-wash:#e8efe4;
+  --coral:#d98c6a;--coral-deep:#c06f4c;--coral-wash:#f7e8dd;
+  --rule:#e6ddce;--alert:#c0524a;--pos:#4f6b52;--male:#3f6fa3;--female:#c47a86;
+  --pop:#3f6fa3;--aging:#c0524a;
   --serif-en:'Fraunces',serif;--serif-jp:'Zen Old Mincho',serif;--sans-jp:'Zen Kaku Gothic New',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -50,8 +52,8 @@ header.site{border-bottom:1px solid var(--rule);background:var(--paper);position
 /* selector */
 .selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:26px 0 8px;padding:20px;background:var(--paper-warm);border:1px solid var(--rule);border-radius:10px}
 .selector .fld label{display:block;font-size:.7rem;letter-spacing:.1em;color:var(--gold-deep);text-transform:uppercase;font-family:var(--serif-en);margin-bottom:6px}
-.selector select{width:100%;padding:11px 12px;font-family:var(--sans-jp);font-size:.95rem;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);cursor:pointer}
-.selector select:focus{outline:none;border-color:var(--gold)}
+.selector input,.selector select{width:100%;padding:11px 12px;font-family:var(--sans-jp);font-size:.95rem;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);cursor:pointer}
+.selector input:focus,.selector select:focus{outline:none;border-color:var(--gold)}
 
 /* auth gate overlay */
 .gate{position:relative}
@@ -125,3 +127,11 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
   .ticker .t{flex:1 1 40%}
   .area-head .asof{margin-left:0;flex-basis:100%}
 }
+
+/* shared top nav */
+.topnav{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.topnav a{font-family:var(--sans-jp);font-size:.86rem;color:var(--ink-soft);text-decoration:none;padding:8px 14px;border-radius:20px;transition:.2s}
+.topnav a:hover{background:var(--gold-wash);color:var(--gold-deep)}
+.topnav a.on{background:var(--gold);color:#fff}
+.topnav a.on:hover{background:var(--gold-deep);color:#fff}
+@media(max-width:640px){.topnav a{padding:6px 10px;font-size:.8rem}}

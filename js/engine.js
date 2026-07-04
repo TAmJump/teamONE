@@ -94,8 +94,8 @@
     // 医療機関総数（病院＋一般診療所＋歯科）
     const medTotal = facilities.hospital + facilities.clinic + facilities.dental;
 
-    // 人口あたり指標
-    const per10k = (n) => pop > 0 ? +(n / pop * 10000).toFixed(2) : 0;
+    // 人口10万対 指標（当該エリアの推計人口を分母に算出）
+    const per100k = (n) => pop > 0 ? +(n / pop * 100000).toFixed(1) : 0;
 
     return {
       yearFrac: yf,
@@ -104,11 +104,11 @@
       elderlyN, youthN, workingN, labor,
       facilities, kamoku, medTotal,
       per: {
-        clinicPer10k: per10k(facilities.clinic),
-        hospitalPer10k: per10k(facilities.hospital),
-        kaigoPer10k: per10k(facilities.kaigo),
-        pharmacyPer10k: per10k(facilities.pharmacy),
-        shafukuPer10k: per10k(facilities.shafuku),
+        clinicPer10k: per100k(facilities.clinic),
+        hospitalPer10k: per100k(facilities.hospital),
+        kaigoPer10k: per100k(facilities.kaigo),
+        pharmacyPer10k: per100k(facilities.pharmacy),
+        shafukuPer10k: per100k(facilities.shafuku),
       },
     };
   }
