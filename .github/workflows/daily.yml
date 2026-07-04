@@ -1,0 +1,27 @@
+name: Daily estimate refresh
+on:
+  schedule:
+    - cron: '20 21 * * *'   # 毎日 06:20 JST (21:20 UTC)
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.x' }
+      - name: Rebuild regions.json
+        run: python3 scripts/build_regions.py
+      - name: Commit if changed
+        run: |
+          git config user.name  "TAmJump"
+          git config user.email "animalb001@gmail.com"
+          if ! git diff --quiet; then
+            git add data/regions.json
+            git commit -m "chore: daily estimate refresh ($(date -u +%F))"
+            git push
+          else
+            echo "no change"
+          fi

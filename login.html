@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ログイン ｜ TAmJ 地域インテリジェンス</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1a17;--ink-soft:#4a4640;--ink-faint:#8b857b;--paper:#fff;--paper-warm:#faf8f4;--rule:#ded7c9;--gold:#a4863f;--gold-deep:#856a2c;--gold-wash:#f5efe1;--serif-en:'Fraunces',serif;--serif-jp:'Zen Old Mincho',serif;--sans:'Zen Kaku Gothic New',sans-serif;--alert:#8a3b2f}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--paper-warm);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;line-height:1.7}
+.top{border-bottom:1px solid var(--rule);background:#fff;padding:14px clamp(16px,4vw,48px)}
+.top a{font-family:var(--serif-jp);font-weight:700;font-size:1.1rem;text-decoration:none;color:var(--ink)}
+.top a .en{font-family:var(--serif-en);font-style:italic;color:var(--gold-deep);font-size:.72rem;display:block}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 20px}
+.box{background:#fff;border:1px solid var(--rule);border-radius:14px;max-width:400px;width:100%;padding:40px 36px;box-shadow:0 18px 50px rgba(27,26,23,.06)}
+.box .eyebrow{font-family:var(--serif-en);font-style:italic;color:var(--gold-deep);font-size:.85rem;margin-bottom:8px}
+.box h1{font-family:var(--serif-jp);font-size:1.5rem;margin-bottom:20px}
+label{display:block;font-size:.72rem;letter-spacing:.08em;color:var(--gold-deep);text-transform:uppercase;font-family:var(--serif-en);margin:14px 0 6px}
+input{width:100%;padding:12px 13px;font-family:var(--sans);font-size:.95rem;border:1px solid var(--rule);border-radius:7px;background:#fff}
+input:focus{outline:none;border-color:var(--gold)}
+button{width:100%;margin-top:18px;padding:13px;font-family:var(--sans);font-weight:700;font-size:.95rem;background:var(--gold);color:#fff;border:none;border-radius:7px;cursor:pointer;transition:.2s}
+button:hover{background:var(--gold-deep)}
+button:disabled{opacity:.6}
+.msg{display:none;font-size:.84rem;margin-top:14px;color:var(--alert)}
+.msg.show{display:block}
+.msg.ok{color:var(--gold-deep)}
+.resend{display:none;margin-top:14px;font-size:.84rem;color:var(--ink-soft)}
+.resend.show{display:block}
+.resend button{width:auto;padding:8px 16px;font-size:.82rem;margin-top:8px;background:none;border:1px solid var(--gold);color:var(--gold-deep)}
+.resend button:hover{background:var(--gold-wash)}
+.alt{text-align:center;margin-top:20px;font-size:.85rem;color:var(--ink-soft)}
+.alt a{color:var(--gold-deep);text-decoration:none;font-weight:500}
+</style>
+</head>
+<body>
+<div class="top"><a href="index.html">TAmJ 地域インテリジェンス<span class="en">Regional Intelligence</span></a></div>
+<main>
+  <div class="box">
+    <div class="eyebrow">Member login</div>
+    <h1>ログイン</h1>
+    <label>メールアドレス</label>
+    <input id="loginEmail" type="email" autocomplete="email" placeholder="you@example.com">
+    <label>パスワード</label>
+    <input id="loginPassword" type="password" autocomplete="current-password" placeholder="パスワード">
+    <button id="btnLogin">ログイン</button>
+    <div id="loginError" class="msg"></div>
+    <div id="loginSuccess" class="msg ok"></div>
+    <div id="resendBox" class="resend">メールアドレスの確認が済んでいないようです。<br><button id="resendBtn" onclick="resendVerification()">確認メールを再送する</button></div>
+    <div class="alt">アカウントをお持ちでない方は <a href="register.html">会員登録（無料）</a></div>
+  </div>
+</main>
+<script src="js/auth.js"></script>
+<script>
+onAuthReady(function(user){ if(user){ var p=new URLSearchParams(location.search); location.href=decodeURIComponent(p.get('return')||'index.html'); } });
+document.getElementById('btnLogin').addEventListener('click', async function(){
+  var btn=document.getElementById('btnLogin'), err=document.getElementById('loginError'), rb=document.getElementById('resendBox');
+  var email=document.getElementById('loginEmail').value.trim(), pw=document.getElementById('loginPassword').value;
+  err.classList.remove('show'); rb.classList.remove('show');
+  if(!email||!pw){ err.textContent='メールアドレスとパスワードを入力してください。'; err.classList.add('show'); return; }
+  btn.disabled=true; btn.textContent='ログイン中…';
+  var r=await loginUser(email,pw);
+  if(r.ok){ var p=new URLSearchParams(location.search); location.href=decodeURIComponent(p.get('return')||'index.html'); }
+  else{ if(r.error&&r.error.indexOf('確認されていません')>=0){ rb.classList.add('show'); } else { err.textContent=r.error||'ログインに失敗しました。'; err.classList.add('show'); } btn.disabled=false; btn.textContent='ログイン'; }
+});
+document.getElementById('loginPassword').addEventListener('keydown',function(e){ if(e.key==='Enter') document.getElementById('btnLogin').click(); });
+async function resendVerification(){
+  var email=document.getElementById('loginEmail').value.trim(); if(!email)return;
+  var suc=document.getElementById('loginSuccess'), rb=document.getElementById('resendBox'), b=document.getElementById('resendBtn');
+  b.disabled=true; b.textContent='送信中…';
+  try{ var res=await fetch('https://tamjump-member-api.animalb001.workers.dev/api/auth/resend-verification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})}); var d=await res.json(); if(d.ok){ rb.classList.remove('show'); suc.textContent='確認メールを再送しました。メールをご確認ください。'; suc.classList.add('show'); } }catch(e){}
+  b.disabled=false; b.textContent='確認メールを再送する';
+}
+</script>
+</body>
+</html>
