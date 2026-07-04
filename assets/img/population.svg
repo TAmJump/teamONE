@@ -1,9 +1,0 @@
-<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="年齢3区分の構成">
-  <rect width="800" height="460" fill="#ffffff"/>
-  <rect x="80" y="90"  width="640" height="86" rx="8" fill="#dbe9fb"/>
-  <rect x="80" y="196" width="470" height="86" rx="8" fill="#0a63d6"/>
-  <rect x="80" y="302" width="300" height="86" rx="8" fill="#0846a0"/>
-  <text x="104" y="145" font-family="'Zen Kaku Gothic New',sans-serif" font-size="30" font-weight="700" fill="#0846a0">年少</text>
-  <text x="104" y="251" font-family="'Zen Kaku Gothic New',sans-serif" font-size="30" font-weight="700" fill="#ffffff">生産年齢</text>
-  <text x="104" y="357" font-family="'Zen Kaku Gothic New',sans-serif" font-size="30" font-weight="700" fill="#ffffff">高齢</text>
-</svg>

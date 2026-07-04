@@ -3,19 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TAmJ 地域共生インテリジェンス ｜ 地域を、つなぎ直す。</title>
-<meta name="description" content="医療・介護・生活・地域産業を一つの連携でつなぎ直す構想。全国の市区町村データ、経済効果、投資構造、地域産業資本までを束ねるTAmJの地域共生プラットフォーム。">
+<title>開幕 ｜ TAmJ 地域共生インテリジェンス</title>
+<meta name="description" content="医療・介護・暮らし・地域産業を一つの連携でつなぎ直す。地域の新たな歴史が、いま開幕する。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/site.css">
 </head>
-<body>
+<body class="locked">
 
+<!-- ===== 開幕 entrance ===== -->
+<div class="maku" id="maku">
+  <div class="kaimaku">
+    <img src="assets/maku/kai.png"  alt="開" class="kchar" id="kaiChar">
+    <img src="assets/maku/maku.png" alt="幕" class="kchar" id="makuChar">
+  </div>
+  <div class="byobu" id="byobu">
+    <div class="pl"><img src="assets/maku/fusuma.jpg" alt=""></div>
+    <div class="pr"><img src="assets/maku/fusuma.jpg" alt=""></div>
+  </div>
+  <div class="hint" id="hint">
+    <img src="assets/maku/sensu.png" alt="ひらく">
+    <span>ひらく</span>
+  </div>
+</div>
+
+<!-- ===== header ===== -->
 <header class="site">
   <div class="bar">
-    <a class="brand" href="index.html" style="text-decoration:none;color:inherit">TAmJ 地域共生インテリジェンス<span class="en">Community Intelligence — for local welfare</span></a>
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit"><img src="assets/img/logo.png?v=6" class="lg" alt="">TAmJ 地域共生インテリジェンス<span class="en">Community Intelligence — for local welfare</span></a>
     <nav class="topnav">
       <a href="index.html" class="on">ホーム</a>
       <a href="data.html">地域データ</a>
@@ -24,96 +41,76 @@
   </div>
 </header>
 
-<section class="hero">
-  <div class="inner wa">
-    <div class="txt">
-      <div class="eyebrow">Connecting care, work and community</div>
-      <h1>地域を、<span class="accent">つなぎ直す。</span></h1>
-      <p>医療も、介護も、暮らしも、地域の仕事も——別々に弱っていく。だから、一つにつなぐ。連携がバラバラの営みを一つの循環に変えるとき、地域はもう一度まわりはじめる。</p>
-      <div class="cta">
-        <a class="primary" href="data.html">地域の現在地を見る</a>
-        <a class="ghost" href="impact.html">構想と数字を読む</a>
-      </div>
+<!-- ===== hero (full bleed 地方→未来) ===== -->
+<section class="wahero">
+  <div class="bg" style="background-image:url('assets/img/future.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner">
+    <div class="eyebrow">A new chapter for the regions</div>
+    <h1>地域を、<span class="accent">つなぎ直す。</span></h1>
+    <p>医療も、介護も、暮らしも、地域の仕事も——別々に弱っていく。だから、一つにつなぐ。連携が、地域をもう一度まわす。</p>
+    <div class="cta">
+      <a class="primary" href="data.html">地域の現在地を見る</a>
+      <a class="ghost" href="impact.html">構想と数字を読む</a>
     </div>
   </div>
-  <div class="waband"><img src="assets/img/hero-wa.jpg?v=5" alt="地方から都市へ、地域の風景"></div>
 </section>
 
-<div class="pagewrap">
-
-
-
-  <section class="blk">
+<!-- ===== thesis (松 bg) ===== -->
+<section class="imgblk light">
+  <div class="bg" style="background-image:url('assets/img/matsu.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner narrow" style="text-align:center">
     <div class="tag">The thesis</div>
     <h2>連携が、バラバラの営みを<br>一つの循環に変える。</h2>
-    <p class="lead">アプリが事務の時間を返し、共同の物流が雇用を生み、暮らしの支えが人をつなぎ、医療と介護が圏を重ねる。ひとつずつでは小さな力が、連携で束ねると循環になる。私たちがつくるのは、その循環の設計図です。</p>
-  </section>
+    <p style="margin:0 auto">アプリが事務の時間を返し、共同の物流が雇用を生み、暮らしの支えが人をつなぎ、医療と介護が圏を重ねる。ひとつずつでは小さな力が、束ねると循環になる。</p>
+  </div>
+</section>
 
-  <section class="blk">
+<!-- ===== 連携のかたち (投資構造 concept bg, side) ===== -->
+<section class="imgblk side">
+  <div class="bg" style="background-image:url('assets/img/invest.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner">
     <div class="tag">How it works</div>
     <h2>連携のかたち</h2>
-    <p>現場は運営に集中し、司令塔が支え、実装が効率を生み、投資は「地域のインフラ」に向かう。役割を分けることで、それぞれが無理なく強くなる。</p>
-    <div class="roles">
-      <div class="role"><div class="n">Ⅰ</div><div><div class="h">現場 ── 福祉の担い手</div><div class="d">利用者へサービスを届け、地域の暮らしを支える。ここは公益の場であり、利益を配当しない。だからこそ信頼される。</div></div></div>
-      <div class="role"><div class="n">Ⅱ</div><div><div class="h">司令塔 ── 連携の推進</div><div class="d">経営支援・人材シェア・共同購入・共同研修・DXを束ねる。加盟でスケールが生まれ、一件あたりの負担が下がる。</div></div></div>
-      <div class="role"><div class="n">Ⅲ</div><div><div class="h">実装 ── DX・物流・決済</div><div class="d">連絡・同意・請求・収納・共同購入・配送を仕組みにする。人が机で消していた時間が、そのまま原資に変わる。</div></div></div>
-      <div class="role"><div class="n">Ⅳ</div><div><div class="h">投資 ── 地域インフラ資産</div><div class="d">資金は現場に直接ではなく、施設・物流・住宅・DXといった地域の実物資産と会社に向かう。公益と資本を分けて設計する。</div></div></div>
-    </div>
-    <div class="note2 calm"><span class="k">A quiet principle</span>投資は福祉の現場へ直接は入らない。<b>「地域の医療・介護インフラという資産クラス」</b>へ向かう。現場は運営改善と地域の恵みを受け、投資家は契約に基づく収益を目指す——役割が澄んでいるほど、長続きする。</div>
-  </section>
+    <p>現場は運営に集中し、司令塔が支え、実装が効率を生み、投資は「地域のインフラ」に向かう。役割を分けることで、それぞれが無理なく強くなる。投資は福祉の現場へ直接は入らず、施設・物流・DXという地域の資産に向かう——公益と資本を、澄んで分ける。</p>
+    <div class="cta2"><a href="impact.html">投資の流れを見る</a></div>
+  </div>
+</section>
 
-  <section class="blk">
-    <div class="split">
-      <div class="txt">
-        <div class="tag">Where we stand</div>
-        <h2>地域の「現在地」を、<br>独自推計で。</h2>
-        <p>公式統計は数値が2〜3年前で止まる。私たちは、国勢調査などのアンカー値を今日の日付へ日次で補間し、<strong>全国すべての市区町村</strong>の人口・年齢・労働人口・高齢化率・社福数・介護事業所数・医療機関数・薬局数を推計として示す。地方の現在は、都市の未来でもある。</p>
-        <div class="cta" style="margin-top:22px"><a class="primary" href="data.html" style="font-family:var(--sans-jp);font-size:.95rem;padding:13px 26px;border-radius:30px;text-decoration:none;background:var(--gold);color:#fff">全国データを開く</a></div>
-      </div>
-      <figure class="fig"><img src="assets/img/population.jpg?v=5" alt="人口構造のイメージ"><figcaption>年齢構成・性比・推移を、市区町村単位で。独自マクロ推計。</figcaption></figure>
-    </div>
-  </section>
+<!-- ===== 現在地 (人口構造 concept bg, side) ===== -->
+<section class="imgblk side">
+  <div class="bg" style="background-image:url('assets/img/population.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner">
+    <div class="tag">Where we stand</div>
+    <h2>地域の「現在地」を、<br>独自推計で。</h2>
+    <p>公式統計は数値が2〜3年前で止まる。国勢調査などのアンカーを今日の日付へ日次で補間し、全国すべての市区町村の人口・年齢・労働・高齢化率・社福・介護・医療・薬局を推計として示す。地方の現在は、都市の未来でもある。</p>
+    <div class="cta2"><a href="data.html">全国データを開く</a></div>
+  </div>
+</section>
 
-  <section class="blk">
-    <div class="split rev">
-      <figure class="fig"><img src="assets/img/future.jpg?v=5" alt="地方から都市への時間軸"></figure>
-      <div class="txt">
-        <div class="tag">The real question</div>
-        <h2>介護に投資しても、<br>介護は再生しない。</h2>
-        <p>へき地の空床は、原因ではなく結果です。若者が出ていき、担い手も利用者も減るから、施設が傾く。だから発想を変える——その地域で一番強い産業を再生し、通年の雇用を取り戻す。地域経済がまわれば、医療も介護も続いていく。</p>
-        <p>介護を救うのは、ときに介護の外にある。私たちはこれを<strong>「地域産業資本」</strong>と呼びます。</p>
-      </div>
-    </div>
-  </section>
+<!-- ===== 問い (紅葉 bg, dark) ===== -->
+<section class="imgblk dark">
+  <div class="bg" style="background-image:url('assets/img/momiji.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner narrow">
+    <div class="tag">The real question</div>
+    <h2>介護に投資しても、介護は再生しない。</h2>
+    <p style="color:#faf6ec">へき地の空床は、原因ではなく結果。若者が出ていき、担い手も利用者も減るから、施設が傾く。だから地域で一番強い産業を再生し、通年の雇用を取り戻す。地域経済がまわれば、医療も介護も続いていく——私たちはこれを「地域産業資本」と呼ぶ。</p>
+    <div class="cta2"><a href="impact.html">地域産業資本を読む</a></div>
+  </div>
+</section>
 
-  <section class="blk">
-    <div class="tag">Explore</div>
-    <h2>もっと詳しく</h2>
-    <div class="cardgrid">
-      <a class="scard" href="data.html">
-        <div class="ph"><img src="assets/img/population.jpg?v=5" alt=""></div>
-        <div class="bd"><h4>地域データ</h4><p>全国全市区町村の人口・医療・介護・薬局を独自推計で。プルダウンと検索で現在地を読む。</p><div class="go">開く →</div></div>
-      </a>
-      <a class="scard" href="impact.html#economy">
-        <div class="ph"><img src="assets/img/carepass.jpg?v=5" alt=""></div>
-        <div class="bd"><h4>経済効果</h4><p>DX・決済・暮らしの支えが、時間と原資をどれだけ生むか。仮説モデルで具体化。</p><div class="go">読む →</div></div>
-      </a>
-      <a class="scard" href="impact.html#invest">
-        <div class="ph"><img src="assets/img/logistics.jpg?v=5" alt=""></div>
-        <div class="bd"><h4>投資構造</h4><p>現場に直接入れない4つの器。内部留保を「信用」として効かせるレバレッジの考え方。</p><div class="go">読む →</div></div>
-      </a>
-      <a class="scard" href="impact.html#industry">
-        <div class="ph"><img src="assets/img/future.jpg?v=5" alt=""></div>
-        <div class="bd"><h4>地域産業資本</h4><p>地域No.1産業の承継から、通年雇用、担い手確保、医療介護の持続へ。海外事例も。</p><div class="go">読む →</div></div>
-      </a>
-    </div>
-  </section>
-
-  <section class="blk closing" style="border-radius:16px;margin-bottom:40px">
-    <p class="q">つなぎ直せば、<span class="em">地域はもう一度</span>まわりだす。</p>
-  </section>
-
-</div>
+<!-- ===== closing (月 bg, dark) ===== -->
+<section class="imgblk dark">
+  <div class="bg" style="background-image:url('assets/img/tsuki.jpg?v=6')"></div>
+  <div class="scrim"></div>
+  <div class="inner narrow" style="text-align:center">
+    <h2 style="font-size:clamp(1.8rem,4.6vw,3rem)">つなぎ直せば、<br>地域はもう一度まわりだす。</h2>
+  </div>
+</section>
 
 <footer class="site2">
   <div class="brand">タムジ株式会社 ｜ TAmJ.Corp</div>
@@ -121,5 +118,21 @@
   <div class="src">本サイトの数値・利回り・経済効果はすべて仮説モデル／独自推計であり、確定値ではありません。福祉法人は剰余金を配当できず、投資資金は現場へ直接は投じられません。役員報酬・内部留保の活用・投資スキームは、法令適合・利益相反管理・所轄庁調整を前提とします。特定の地域・施設・活動を指すものではありません。</div>
 </footer>
 
+<script>
+(function(){
+  var maku=document.getElementById('maku'), opened=false;
+  function open(){
+    if(opened)return; opened=true;
+    maku.classList.add('open');
+    setTimeout(function(){document.getElementById('kaiChar').classList.add('writing');},450);
+    setTimeout(function(){document.getElementById('makuChar').classList.add('writing');},2100);
+    setTimeout(function(){ maku.classList.add('gone'); document.body.classList.remove('locked'); },3600);
+    setTimeout(function(){ if(maku.parentNode) maku.parentNode.removeChild(maku); },4800);
+  }
+  maku.addEventListener('click',open);
+  document.addEventListener('keydown',function(e){ if(e.code==='Space'||e.code==='Enter'){open();} });
+  setTimeout(open, 4200); /* auto-open if no interaction */
+})();
+</script>
 </body>
 </html>
