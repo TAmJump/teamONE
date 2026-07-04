@@ -1,0 +1,23 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="共同物流の網と拠点">
+  <rect width="800" height="500" rx="18" fill="#eef2ea"/>
+  <!-- routes -->
+  <g fill="none" stroke="#9db69a" stroke-width="2.6" stroke-linecap="round">
+    <path d="M400 250 Q250 180 150 130"/>
+    <path d="M400 250 Q300 300 170 350"/>
+    <path d="M400 250 Q520 160 640 120"/>
+    <path d="M400 250 Q560 300 660 360"/>
+    <path d="M400 250 Q400 380 400 430"/>
+  </g>
+  <!-- outer nodes (boxes) -->
+  <g fill="#d98c6a">
+    <rect x="120" y="105" width="46" height="46" rx="8"/>
+    <rect x="140" y="325" width="46" height="46" rx="8"/>
+    <rect x="618" y="95" width="46" height="46" rx="8"/>
+    <rect x="636" y="336" width="46" height="46" rx="8"/>
+    <rect x="377" y="408" width="46" height="46" rx="8"/>
+  </g>
+  <!-- central hub -->
+  <circle cx="400" cy="250" r="48" fill="#6f8b6e"/>
+  <rect x="378" y="228" width="44" height="44" rx="8" fill="#fdfbf7"/>
+  <path d="M378 246 H422 M400 228 V272" stroke="#6f8b6e" stroke-width="3"/>
+</svg>

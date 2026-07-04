@@ -1,0 +1,25 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="人口と年齢構成のイメージ">
+  <rect width="800" height="500" rx="18" fill="#eef2ea"/>
+  <!-- three age bands as soft stacked bars -->
+  <g>
+    <rect x="90" y="110" width="620" height="70" rx="14" fill="#a7bfa2"/>
+    <rect x="90" y="200" width="470" height="70" rx="14" fill="#6f8b6e"/>
+    <rect x="90" y="290" width="300" height="70" rx="14" fill="#d98c6a"/>
+  </g>
+  <!-- labels dots -->
+  <g fill="#3a352d" font-family="'Zen Kaku Gothic New',sans-serif" font-size="20">
+    <text x="105" y="152" fill="#3a352d">年少</text>
+    <text x="105" y="242" fill="#fdfbf7">生産年齢</text>
+    <text x="105" y="332" fill="#fdfbf7">高齢</text>
+  </g>
+  <!-- simple people row -->
+  <g fill="#4f6b52">
+    <g transform="translate(150,410)"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(230,410)" fill="#d98c6a"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(310,410)"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(390,410)" fill="#d98c6a"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(470,410)"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(550,410)" fill="#c06f4c"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+    <g transform="translate(630,410)" fill="#c06f4c"><circle cx="0" cy="0" r="13"/><rect x="-15" y="16" width="30" height="34" rx="12"/></g>
+  </g>
+</svg>

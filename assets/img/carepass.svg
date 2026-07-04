@@ -1,0 +1,18 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="暮らしの支えが地域を循環するイメージ">
+  <rect width="800" height="500" rx="18" fill="#eef2ea"/>
+  <circle cx="400" cy="250" r="150" fill="none" stroke="#6f8b6e" stroke-width="4" stroke-dasharray="10 10" opacity=".7"/>
+  <!-- flow arrow on ring -->
+  <path d="M400 100 A150 150 0 0 1 512 178" fill="none" stroke="#d98c6a" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="512,178 500,160 524,166" fill="#d98c6a"/>
+  <!-- nodes: shop, home, care -->
+  <g>
+    <circle cx="400" cy="100" r="40" fill="#d98c6a"/>
+    <rect x="382" y="88" width="36" height="26" rx="4" fill="#fdfbf7"/><path d="M382 96 H418" stroke="#c06f4c" stroke-width="3"/>
+    <circle cx="530" cy="335" r="40" fill="#6f8b6e"/>
+    <path d="M512 338 L530 320 L548 338 Z" fill="#fdfbf7"/><rect x="518" y="336" width="24" height="20" fill="#fdfbf7"/>
+    <circle cx="270" cy="335" r="40" fill="#4f6b52"/>
+    <path d="M270 318 c-14 0 -18 22 0 30 c18 -8 14 -30 0 -30 Z" fill="#f7e8dd"/>
+  </g>
+  <circle cx="400" cy="250" r="30" fill="#fdfbf7" stroke="#4f6b52" stroke-width="2.5"/>
+  <text x="400" y="258" text-anchor="middle" fill="#4f6b52" font-family="'Zen Old Mincho',serif" font-size="20">¥100</text>
+</svg>
