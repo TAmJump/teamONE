@@ -15,12 +15,7 @@
 <header class="site">
   <div class="bar">
     <div class="brand">TAmJ 地域インテリジェンス<span class="en">Regional Intelligence — proprietary macro estimate</span></div>
-    <div class="authbox" id="authbox">
-      <span class="who" id="whoami"></span>
-      <a class="btn" href="login.html" id="loginlink">ログイン</a>
-      <a class="btn solid" href="register.html" id="reglink">会員登録（無料）</a>
-      <button id="logoutbtn" style="display:none">ログアウト</button>
-    </div>
+    <div class="authbox"><span class="who" style="color:var(--ink-faint);font-size:.78rem">全国 全市区町村 ・ 無料公開</span></div>
   </div>
   <div class="ticker"><div class="row" id="ticker"></div></div>
 </header>
@@ -39,25 +34,12 @@
     <div class="fld"><label>市区町村</label><select id="selMuni"><option value="">県全体</option></select></div>
   </div>
 
-  <div class="gate locked" id="gate">
-    <div class="gate-card">
-      <div class="inner">
-        <h3>会員登録で、全データを無料開放</h3>
-        <p class="mincho">市区町村単位の推計値・推移グラフ・診療科目別の医療機関数まで、すべて無料でご利用いただけます。ご利用には無料の会員登録が必要です。</p>
-        <div class="acts">
-          <a class="primary" href="register.html">無料で会員登録</a>
-          <a class="ghost" href="login.html">ログイン</a>
-        </div>
-        <div class="free">No payment. Registration only.</div>
-      </div>
+  <div class="dash" id="dash">
+    <div class="area-head">
+      <h2 id="areaName">全国</h2>
+      <span class="pref" id="areaPref"></span>
+      <span class="asof" id="asof"></span>
     </div>
-
-    <div class="dash" id="dash">
-      <div class="area-head">
-        <h2 id="areaName">全国</h2>
-        <span class="pref" id="areaPref"></span>
-        <span class="asof" id="asof"></span>
-      </div>
       <div class="cards" id="cards"></div>
 
       <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
@@ -73,7 +55,6 @@
       </div>
 
       <div class="note" id="rings"></div>
-    </div>
   </div>
 </div>
 
@@ -83,37 +64,11 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/auth.js"></script>
 <script src="js/engine.js"></script>
 <script>
 (function(){
   'use strict';
   var DATA=null, META=null, cur=null;
-
-  // ── 認証ゲート ──
-  function applyAuth(user){
-    var gate=document.getElementById('gate');
-    var who=document.getElementById('whoami');
-    var loginlink=document.getElementById('loginlink');
-    var reglink=document.getElementById('reglink');
-    var logoutbtn=document.getElementById('logoutbtn');
-    if(user){
-      gate.classList.remove('locked');
-      who.textContent=(user.displayName||user.email)+' さん';
-      loginlink.style.display='none'; reglink.style.display='none';
-      logoutbtn.style.display='';
-    }else{
-      gate.classList.add('locked');
-      who.textContent='';
-      loginlink.style.display=''; reglink.style.display='';
-      logoutbtn.style.display='none';
-    }
-  }
-  if(typeof onAuthReady==='function'){ onAuthReady(applyAuth); } else { applyAuth(null); }
-  document.getElementById('logoutbtn').addEventListener('click',function(){
-    if(typeof logoutUser==='function'){ logoutUser(); }
-    location.reload();
-  });
 
   // ── データ読み込み ──
   fetch('data/regions.json').then(function(r){return r.json();}).then(function(d){
