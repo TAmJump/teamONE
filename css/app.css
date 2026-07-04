@@ -84,7 +84,7 @@ header.site{border-bottom:1px solid var(--rule);background:var(--paper);position
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:20px 0}
 .card{background:var(--paper);padding:22px 20px}
 .card .lbl{font-size:.74rem;letter-spacing:.08em;color:var(--gold-deep);text-transform:uppercase;font-family:var(--serif-en);margin-bottom:10px}
-.card .big{font-family:var(--serif-en);font-weight:500;font-size:clamp(1.8rem,4vw,2.5rem);color:var(--ink);line-height:1}
+.card .big{font-family:var(--serif-en);font-weight:500;font-size:clamp(1.8rem,4vw,2.5rem);color:var(--ink);line-height:1;white-space:nowrap;overflow:hidden}
 .card .big small{font-family:var(--serif-jp);font-size:.85rem;color:var(--ink-soft);margin-left:3px}
 .card .sub{font-size:.8rem;color:var(--ink-faint);margin-top:8px;line-height:1.6}
 .card.wide{grid-column:1/-1}

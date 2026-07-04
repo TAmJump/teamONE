@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=10">
+<link rel="stylesheet" href="css/app.css?v=11">
 </head>
 <body>
 
@@ -91,6 +91,8 @@
     document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP')+'　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村を収録';
     document.getElementById('sources').textContent='出典（アンカー）：'+ (META.sources||[]).join(' / ');
     initSelectors(); renderTicker(); renderNational();
+    window.addEventListener('resize', fitBig);
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fitBig); }
   }).catch(function(e){
     document.getElementById('esttag').textContent='データ読込エラー';
   });
@@ -243,7 +245,17 @@
     renderTable(region);
     renderHistory(region, e);
     renderRings(region, e);
+    fitBig();
     countUp();
+  }
+
+  // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──
+  function fitBig(){
+    document.querySelectorAll('#cards .big').forEach(function(el){
+      el.style.fontSize='';
+      var size=parseFloat(getComputedStyle(el).fontSize)||28, guard=0;
+      while(el.scrollWidth>el.clientWidth+1 && size>12 && guard<48){ size-=1; el.style.fontSize=size+'px'; guard++; }
+    });
   }
 
   // ── 数値表（隔年・人・増減人・背景） ──
