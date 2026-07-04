@@ -105,7 +105,7 @@ def build():
         region,pref_aging=meta; growth=round(cagr(r["pop1980"],r["pop2020"],40),2)
         aging=muni_aging(pref_aging,r["pop2020"],growth)
         youth=round(max(6.0,min(18.0, PREF_YOUTH.get(r["pref"],11.0)-(aging-pref_aging)*0.18)),1)
-        disp=(r["gun"]+r["name"]) if r["gun"] else r["name"]
+        disp=(r["name"]+"（"+r["gun"]+"）") if r["gun"] else r["name"]
         municipalities.append({"name":r["name"],"disp":disp,"pref":r["pref"],"region":region,
             "level":"muni","code":r["code"],"pop2020":round(r["pop2020"]/1000.0,1),
             "aging":aging,"youth":youth,"growth":growth,

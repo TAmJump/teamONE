@@ -1,18 +1,12 @@
-<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="地方から都市への時間軸">
-  <rect width="800" height="500" rx="18" fill="#f4f8fd"/>
-  <circle cx="150" cy="120" r="40" fill="#0a63d6"/>
-  <path d="M0 360 Q140 300 280 350 T560 340 T800 350 L800 500 L0 500 Z" fill="#7fb0ee"/>
-  <path d="M0 400 Q180 350 360 390 T800 390 L800 500 L0 500 Z" fill="#0a63d6"/>
-  <g fill="#0846a0"><rect x="120" y="330" width="52" height="42" rx="3"/><path d="M112 330 L146 300 L180 330 Z"/></g>
-  <g fill="#0846a0">
-    <rect x="560" y="250" width="46" height="150" rx="3"/>
-    <rect x="614" y="210" width="52" height="190" rx="3"/>
-    <rect x="674" y="280" width="44" height="120" rx="3"/>
+<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="地方から都市への時間">
+  <rect width="800" height="460" fill="#ffffff"/>
+  <circle cx="150" cy="110" r="46" fill="#0a63d6"/>
+  <g fill="#0846a0"><rect x="112" y="300" width="70" height="60" rx="4"/><path d="M100 300 L147 258 L194 300 Z"/></g>
+  <g fill="#0a63d6">
+    <rect x="560" y="180" width="56" height="180" rx="4"/>
+    <rect x="626" y="130" width="64" height="230" rx="4"/>
+    <rect x="700" y="220" width="52" height="140" rx="4"/>
   </g>
-  <g fill="#ffffff" opacity=".9">
-    <rect x="622" y="230" width="10" height="12"/><rect x="640" y="230" width="10" height="12"/>
-    <rect x="622" y="260" width="10" height="12"/><rect x="640" y="260" width="10" height="12"/>
-  </g>
-  <path d="M120 430 Q400 470 690 400" fill="none" stroke="#0a63d6" stroke-width="4" stroke-linecap="round"/>
-  <circle cx="120" cy="430" r="7" fill="#0846a0"/><circle cx="690" cy="400" r="7" fill="#0846a0"/>
+  <line x1="150" y1="400" x2="700" y2="400" stroke="#0a63d6" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="150" cy="400" r="10" fill="#0846a0"/><circle cx="700" cy="400" r="10" fill="#0846a0"/>
 </svg>

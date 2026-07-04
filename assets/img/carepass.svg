@@ -1,14 +1,11 @@
-<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="暮らしの支えが地域を循環するイメージ">
-  <rect width="800" height="500" rx="18" fill="#f4f8fd"/>
-  <circle cx="400" cy="250" r="150" fill="none" stroke="#0a63d6" stroke-width="4" stroke-dasharray="10 10"/>
-  <path d="M400 100 A150 150 0 0 1 512 178" fill="none" stroke="#0846a0" stroke-width="5" stroke-linecap="round"/>
-  <polygon points="512,178 500,158 526,164" fill="#0846a0"/>
-  <circle cx="400" cy="100" r="40" fill="#0a63d6"/>
-  <rect x="382" y="88" width="36" height="26" rx="3" fill="#ffffff"/><path d="M382 96 H418" stroke="#0a63d6" stroke-width="3"/>
-  <circle cx="530" cy="335" r="40" fill="#0a63d6"/>
-  <path d="M512 338 L530 320 L548 338 Z" fill="#ffffff"/><rect x="518" y="336" width="24" height="20" fill="#ffffff"/>
-  <circle cx="270" cy="335" r="40" fill="#0846a0"/>
-  <path d="M270 318 c-14 0 -18 22 0 30 c18 -8 14 -30 0 -30 Z" fill="#ffffff"/>
-  <circle cx="400" cy="250" r="32" fill="#ffffff" stroke="#0a63d6" stroke-width="3"/>
-  <text x="400" y="258" text-anchor="middle" fill="#0a63d6" font-family="'Zen Old Mincho',serif" font-size="20">¥100</text>
+<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="暮らしの支えの循環">
+  <rect width="800" height="460" fill="#ffffff"/>
+  <circle cx="400" cy="230" r="150" fill="none" stroke="#0a63d6" stroke-width="8"/>
+  <path d="M400 80 A150 150 0 0 1 530 155" fill="none" stroke="#0846a0" stroke-width="10" stroke-linecap="round"/>
+  <polygon points="530,155 512,132 542,140" fill="#0846a0"/>
+  <circle cx="400" cy="80"  r="46" fill="#0a63d6"/>
+  <circle cx="530" cy="315" r="46" fill="#0a63d6"/>
+  <circle cx="270" cy="315" r="46" fill="#0846a0"/>
+  <circle cx="400" cy="230" r="52" fill="#ffffff" stroke="#0a63d6" stroke-width="6"/>
+  <text x="400" y="242" text-anchor="middle" fill="#0a63d6" font-family="'Zen Old Mincho',serif" font-size="30" font-weight="700">¥100</text>
 </svg>

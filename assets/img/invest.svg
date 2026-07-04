@@ -1,14 +1,13 @@
-<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="4つの器を束ねる投資構造">
-  <rect width="800" height="500" rx="18" fill="#f4f8fd"/>
-  <rect x="120" y="180" width="72" height="170" rx="8" fill="#7fb0ee"/>
-  <rect x="220" y="140" width="72" height="210" rx="8" fill="#0a63d6"/>
-  <rect x="320" y="210" width="72" height="140" rx="8" fill="#7fb0ee"/>
-  <rect x="420" y="170" width="72" height="180" rx="8" fill="#0a63d6"/>
-  <g fill="none" stroke="#0a63d6" stroke-width="3" stroke-linecap="round">
-    <path d="M156 350 Q300 400 585 370"/><path d="M256 350 Q380 400 585 375"/>
-    <path d="M356 350 Q450 400 585 380"/><path d="M456 350 Q520 400 585 385"/>
+<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="4つの器を束ねる">
+  <rect width="800" height="460" fill="#ffffff"/>
+  <rect x="120" y="150" width="86" height="170" rx="6" fill="#dbe9fb"/>
+  <rect x="230" y="110" width="86" height="210" rx="6" fill="#0a63d6"/>
+  <rect x="340" y="180" width="86" height="140" rx="6" fill="#dbe9fb"/>
+  <rect x="450" y="140" width="86" height="180" rx="6" fill="#0a63d6"/>
+  <g fill="none" stroke="#0a63d6" stroke-width="5" stroke-linecap="round">
+    <path d="M163 320 Q330 380 610 340"/><path d="M273 320 Q400 380 610 345"/>
+    <path d="M383 320 Q470 380 610 350"/><path d="M493 320 Q540 380 610 355"/>
   </g>
-  <path d="M520 360 L650 360 L632 460 Q585 478 538 460 Z" fill="#0846a0"/>
-  <ellipse cx="585" cy="360" rx="65" ry="15" fill="#0f1720"/>
-  <text x="585" y="425" text-anchor="middle" fill="#ffffff" font-family="'Zen Old Mincho',serif" font-size="22">Fund</text>
+  <path d="M540 330 L680 330 L658 440 Q610 460 562 440 Z" fill="#0846a0"/>
+  <ellipse cx="610" cy="330" rx="70" ry="16" fill="#0f1720"/>
 </svg>
