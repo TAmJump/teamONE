@@ -58,9 +58,9 @@
 
       <div class="trend">
         <h3>人口と高齢化率の推移（2000 → 現在）</h3>
-        <div class="cap" id="trendCap">独自推計。<span style="color:#3f6fa3;font-weight:600">青＝人口（千人）</span>、<span style="color:#c0524a;font-weight:600">赤＝高齢化率（%）</span>。</div>
+        <div class="cap" id="trendCap">独自推計。<span style="color:#0a63d6;font-weight:600">青＝人口（千人）</span>、<span style="color:#0f1720;font-weight:600">黒＝高齢化率（%）</span>。</div>
         <div id="chart"></div>
-        <div class="lg"><span><span class="dot" style="background:#3f6fa3"></span>人口</span><span><span class="dot" style="background:#c0524a"></span>高齢化率</span></div>
+        <div class="lg"><span><span class="dot" style="background:#0a63d6"></span>人口</span><span><span class="dot" style="background:#0f1720"></span>高齢化率</span></div>
       </div>
 
       <div class="note" id="rings"></div>
@@ -214,12 +214,12 @@
     [2000,2005,2010,2015,2020,Math.floor(maxX)].forEach(function(yr){ if(yr>=minX&&yr<=maxX){ xticks+='<text x="'+X(yr)+'" y="'+(H-10)+'" fill="#8b857b" font-size="11" text-anchor="middle" font-family="Fraunces,serif">'+yr+'</text>'; }});
     var last=pts[pts.length-1];
     var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+grid+xticks+
-      '<path d="'+path(pops,YP)+'" fill="none" stroke="#3f6fa3" stroke-width="2.6"/>'+
-      '<path d="'+path(ages,YA)+'" fill="none" stroke="#c0524a" stroke-width="2.6"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#3f6fa3"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#c0524a"/>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#3f6fa3" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#c0524a" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
+      '<path d="'+path(pops,YP)+'" fill="none" stroke="#0a63d6" stroke-width="2.6"/>'+
+      '<path d="'+path(ages,YA)+'" fill="none" stroke="#0f1720" stroke-width="2.6"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#0a63d6"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#0f1720"/>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#0a63d6" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#0f1720" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
       '</svg>';
     document.getElementById('chart').innerHTML=svg;
   }

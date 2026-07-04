@@ -3,12 +3,12 @@
    白背景 / gold #a4863f / Fraunces + Zen Old Mincho + Zen Kaku Gothic
    ============================================================ */
 :root{
-  --ink:#3a352d;--ink-soft:#655e52;--ink-faint:#9a9184;
-  --paper:#fdfbf7;--paper-warm:#f5efe4;--paper-line:#efe8db;
-  --gold:#6f8b6e;--gold-deep:#4f6b52;--gold-wash:#e8efe4;
-  --coral:#d98c6a;--coral-deep:#c06f4c;--coral-wash:#f7e8dd;
-  --rule:#e6ddce;--alert:#c0524a;--pos:#4f6b52;--male:#3f6fa3;--female:#c47a86;
-  --pop:#3f6fa3;--aging:#c0524a;
+  --ink:#0f1720;--ink-soft:#3d4954;--ink-faint:#8892a0;
+  --paper:#ffffff;--paper-warm:#f4f8fd;--paper-line:#e6edf5;
+  --gold:#0a63d6;--gold-deep:#0846a0;--gold-wash:#e8f1fd;
+  --coral:#0a63d6;--coral-deep:#0846a0;--coral-wash:#e8f1fd;
+  --rule:#dce6f2;--alert:#0a63d6;--pos:#0846a0;--male:#0a63d6;--female:#7fb0ee;
+  --pop:#0a63d6;--aging:#0f1720;
   --serif-en:'Fraunces',serif;--serif-jp:'Zen Old Mincho',serif;--sans-jp:'Zen Kaku Gothic New',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}

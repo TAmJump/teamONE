@@ -1,21 +1,14 @@
 <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="4つの器を束ねる投資構造">
-  <rect width="800" height="500" rx="18" fill="#eef2ea"/>
-  <!-- four pillars -->
-  <g>
-    <rect x="120" y="180" width="72" height="170" rx="10" fill="#a7bfa2"/>
-    <rect x="220" y="140" width="72" height="210" rx="10" fill="#6f8b6e"/>
-    <rect x="320" y="210" width="72" height="140" rx="10" fill="#d98c6a"/>
-    <rect x="420" y="170" width="72" height="180" rx="10" fill="#c06f4c"/>
+  <rect width="800" height="500" rx="18" fill="#f4f8fd"/>
+  <rect x="120" y="180" width="72" height="170" rx="8" fill="#7fb0ee"/>
+  <rect x="220" y="140" width="72" height="210" rx="8" fill="#0a63d6"/>
+  <rect x="320" y="210" width="72" height="140" rx="8" fill="#7fb0ee"/>
+  <rect x="420" y="170" width="72" height="180" rx="8" fill="#0a63d6"/>
+  <g fill="none" stroke="#0a63d6" stroke-width="3" stroke-linecap="round">
+    <path d="M156 350 Q300 400 585 370"/><path d="M256 350 Q380 400 585 375"/>
+    <path d="M356 350 Q450 400 585 380"/><path d="M456 350 Q520 400 585 385"/>
   </g>
-  <!-- merge lines to fund -->
-  <g fill="none" stroke="#9db69a" stroke-width="3" stroke-linecap="round">
-    <path d="M156 350 Q300 400 585 370"/>
-    <path d="M256 350 Q380 400 585 375"/>
-    <path d="M356 350 Q450 400 585 380"/>
-    <path d="M456 350 Q520 400 585 385"/>
-  </g>
-  <!-- fund vessel -->
-  <path d="M520 360 L650 360 L632 460 Q585 478 538 460 Z" fill="#4f6b52"/>
-  <ellipse cx="585" cy="360" rx="65" ry="15" fill="#3a352d" opacity=".85"/>
-  <text x="585" y="425" text-anchor="middle" fill="#f7e8dd" font-family="'Zen Old Mincho',serif" font-size="22">Fund</text>
+  <path d="M520 360 L650 360 L632 460 Q585 478 538 460 Z" fill="#0846a0"/>
+  <ellipse cx="585" cy="360" rx="65" ry="15" fill="#0f1720"/>
+  <text x="585" y="425" text-anchor="middle" fill="#ffffff" font-family="'Zen Old Mincho',serif" font-size="22">Fund</text>
 </svg>

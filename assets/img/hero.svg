@@ -1,31 +1,22 @@
 <svg viewBox="0 0 720 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="地域がつながり循環するイメージ">
-  <rect width="720" height="560" rx="18" fill="#eef2ea"/>
-  <ellipse cx="360" cy="285" rx="238" ry="188" fill="none" stroke="#cdd9c8" stroke-width="2"/>
-  <ellipse cx="360" cy="285" rx="238" ry="188" fill="none" stroke="#6f8b6e" stroke-width="3" stroke-dasharray="6 320" stroke-linecap="round" opacity=".55"/>
-  <!-- connecting curves -->
-  <g fill="none" stroke="#9db69a" stroke-width="2.4" stroke-linecap="round">
-    <path d="M585 285 Q520 190 470 130"/>
-    <path d="M470 130 Q360 170 250 130"/>
-    <path d="M250 130 Q195 195 135 285"/>
-    <path d="M135 285 Q195 375 250 440"/>
-    <path d="M250 440 Q360 400 470 440"/>
-    <path d="M470 440 Q525 375 585 285"/>
+  <rect width="720" height="560" rx="18" fill="#f4f8fd"/>
+  <ellipse cx="360" cy="285" rx="238" ry="188" fill="none" stroke="#7fb0ee" stroke-width="2.5"/>
+  <g fill="none" stroke="#0a63d6" stroke-width="3" stroke-linecap="round">
+    <path d="M585 285 Q520 190 470 130"/><path d="M470 130 Q360 170 250 130"/>
+    <path d="M250 130 Q195 195 135 285"/><path d="M135 285 Q195 375 250 440"/>
+    <path d="M250 440 Q360 400 470 440"/><path d="M470 440 Q525 375 585 285"/>
   </g>
-  <!-- inner soft links -->
-  <g fill="none" stroke="#e0b7a2" stroke-width="1.8" stroke-linecap="round" opacity=".8">
-    <path d="M470 130 Q360 285 470 440"/>
-    <path d="M250 130 Q360 285 250 440"/>
+  <g fill="none" stroke="#7fb0ee" stroke-width="2" stroke-linecap="round">
+    <path d="M470 130 Q360 285 470 440"/><path d="M250 130 Q360 285 250 440"/>
   </g>
-  <!-- nodes -->
   <g>
-    <circle cx="585" cy="285" r="27" fill="#6f8b6e"/><circle cx="585" cy="285" r="9" fill="#fdfbf7"/>
-    <circle cx="470" cy="130" r="30" fill="#d98c6a"/><circle cx="470" cy="130" r="10" fill="#fdfbf7"/>
-    <circle cx="250" cy="130" r="27" fill="#6f8b6e"/><circle cx="250" cy="130" r="9" fill="#fdfbf7"/>
-    <circle cx="135" cy="285" r="30" fill="#d98c6a"/><circle cx="135" cy="285" r="10" fill="#fdfbf7"/>
-    <circle cx="250" cy="440" r="27" fill="#6f8b6e"/><circle cx="250" cy="440" r="9" fill="#fdfbf7"/>
-    <circle cx="470" cy="440" r="30" fill="#d98c6a"/><circle cx="470" cy="440" r="10" fill="#fdfbf7"/>
+    <circle cx="585" cy="285" r="28" fill="#0a63d6"/><circle cx="585" cy="285" r="9" fill="#ffffff"/>
+    <circle cx="470" cy="130" r="31" fill="#0846a0"/><circle cx="470" cy="130" r="10" fill="#ffffff"/>
+    <circle cx="250" cy="130" r="28" fill="#0a63d6"/><circle cx="250" cy="130" r="9" fill="#ffffff"/>
+    <circle cx="135" cy="285" r="31" fill="#0846a0"/><circle cx="135" cy="285" r="10" fill="#ffffff"/>
+    <circle cx="250" cy="440" r="28" fill="#0a63d6"/><circle cx="250" cy="440" r="9" fill="#ffffff"/>
+    <circle cx="470" cy="440" r="31" fill="#0846a0"/><circle cx="470" cy="440" r="10" fill="#ffffff"/>
   </g>
-  <!-- center -->
-  <circle cx="360" cy="285" r="46" fill="#fdfbf7" stroke="#4f6b52" stroke-width="2.5"/>
-  <circle cx="360" cy="285" r="17" fill="#4f6b52"/>
+  <circle cx="360" cy="285" r="48" fill="#ffffff" stroke="#0a63d6" stroke-width="3"/>
+  <circle cx="360" cy="285" r="18" fill="#0a63d6"/>
 </svg>
