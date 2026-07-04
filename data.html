@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=9">
+<link rel="stylesheet" href="css/app.css?v=10">
 </head>
 <body>
 
@@ -60,7 +60,7 @@
 
       <div class="trend">
         <h3>人口と高齢化率の推移（2000 → 現在）</h3>
-        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（人）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。</div>
+        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（2000=100の指数・末尾は現在の実数）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。</div>
         <div id="chart"></div>
         <div class="lg"><span><span class="dot" style="background:#2b2621"></span>人口</span><span><span class="dot" style="background:#a8432e"></span>高齢化率</span></div>
         <div id="dtable"></div>
@@ -78,7 +78,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=9"></script>
+<script src="js/engine.js?v=10"></script>
 <script>
 (function(){
   'use strict';
@@ -249,7 +249,7 @@
   // ── 数値表（隔年・人・増減人・背景） ──
   function renderTable(region){
     var rows=MacroEngine.tableRows(region);
-    var note='<div class="dtbl-note">2000年から隔年で、実数（人）で表示。四捨五入なし（推計値の生の数字）。<b>増減</b>は「前回表示年からの人口差（人）」。<b>背景</b>は数字から読み取れる一般的な解釈であり、特定の出来事の断定ではありません（独自推計）。グラフの人口線がなめらかなのは、モデルが年 '+(region.growth<0?'約'+Math.abs(region.growth).toFixed(2)+'%の逓減':'約'+region.growth.toFixed(2)+'%の変化')+'で連続的に推移するためで、ある年に急変した記録ではありません。</div>';
+    var note='<div class="dtbl-note">2000年から毎年、実数（人）で表示。四捨五入なし（推計値の生の数字）。<b>増減</b>は「前年からの人口差（人）」。<b>背景</b>は数字から読み取れる一般的な解釈であり、特定の出来事の断定ではありません（独自推計）。グラフの人口線は「2000年=100」の指数・固定軸で描いており、地域の人口規模に関わらず縦スケールがズレません。なめらかなのは、モデルが年 '+(region.growth<0?'約'+Math.abs(region.growth).toFixed(2)+'%の逓減':'約'+region.growth.toFixed(2)+'%の変化')+'で連続的に推移するためで、ある年に急変した記録ではありません。</div>';
     var h=note+'<table class="dtbl"><thead><tr><th>年</th><th>総人口（人）</th><th>増減（人）</th><th>高齢化率</th><th class="rz">背景（数字からの推計解釈）</th></tr></thead><tbody>';
     rows.forEach(function(r){
       var d = r.delta==null ? '—' : (r.delta>0?'+':'')+MacroEngine.fmt(r.delta);
@@ -289,28 +289,40 @@
   // ── 推移チャート（SVG デュアル軸） ──
   function drawChart(region){
     var pts=MacroEngine.trendSeries(region);
-    var W=920,H=320,pl=54,pr=54,pt=20,pb=34;
+    var W=920,H=340,pl=52,pr=54,pt=26,pb=40;
     var xs=pts.map(function(p){return p.year;});
     var minX=xs[0],maxX=xs[xs.length-1];
-    var pops=pts.map(function(p){return p.pop;}), ages=pts.map(function(p){return p.aging;});
-    var minP=Math.min.apply(null,pops)*0.95,maxP=Math.max.apply(null,pops)*1.02;
-    var minA=0,maxA=Math.max(50,Math.max.apply(null,ages)*1.1);
+    var pop0=pts[0].pop||1;
+    var idx=pts.map(function(p){return p.pop/pop0*100;});      // 人口指数（2000=100）
+    var ages=pts.map(function(p){return p.aging;});
+    // 固定軸（規模非依存で線の位置がズレない）：人口指数 40–130／高齢化 0–50
+    var IMIN=40,IMAX=130,AMIN=0,AMAX=50;
+    var clampI=function(v){return Math.max(IMIN,Math.min(IMAX,v));};
     function X(x){return pl+(x-minX)/(maxX-minX)*(W-pl-pr);}
-    function YP(v){return pt+(1-(v-minP)/(maxP-minP))*(H-pt-pb);}
-    function YA(v){return pt+(1-(v-minA)/(maxA-minA))*(H-pt-pb);}
+    function YI(v){return pt+(1-(clampI(v)-IMIN)/(IMAX-IMIN))*(H-pt-pb);}
+    function YA(v){return pt+(1-(v-AMIN)/(AMAX-AMIN))*(H-pt-pb);}
     function path(vals,Y){return vals.map(function(v,i){return (i?'L':'M')+X(xs[i]).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');}
-    var grid='';
-    for(var gy=0;gy<=5;gy++){var yy=pt+gy/5*(H-pt-pb);grid+='<line x1="'+pl+'" y1="'+yy+'" x2="'+(W-pr)+'" y2="'+yy+'" stroke="#ded7c9" stroke-width="1"/>';}
+    var grid='',axL='',axR='';
+    [40,60,80,100,120].forEach(function(iv){ var yy=YI(iv);
+      grid+='<line x1="'+pl+'" y1="'+yy.toFixed(1)+'" x2="'+(W-pr)+'" y2="'+yy.toFixed(1)+'" stroke="'+(iv===100?'#c9bb9c':'#e4dcc9')+'" stroke-width="'+(iv===100?1.4:1)+'"/>';
+      axL+='<text x="'+(pl-7)+'" y="'+(yy+3.5).toFixed(1)+'" fill="#a89a80" font-size="10" text-anchor="end" font-family="Fraunces,serif">'+iv+'</text>'; });
+    [0,10,20,30,40,50].forEach(function(av){ var yy=YA(av);
+      axR+='<text x="'+(W-pr+7)+'" y="'+(yy+3.5).toFixed(1)+'" fill="#c58a78" font-size="10" text-anchor="start" font-family="Fraunces,serif">'+av+'</text>'; });
     var xticks='';
-    [2000,2005,2010,2015,2020,Math.floor(maxX)].forEach(function(yr){ if(yr>=minX&&yr<=maxX){ xticks+='<text x="'+X(yr)+'" y="'+(H-10)+'" fill="#8b857b" font-size="11" text-anchor="middle" font-family="Fraunces,serif">'+yr+'</text>'; }});
+    [2000,2005,2010,2015,2020,Math.floor(maxX)].forEach(function(yr){ if(yr>=minX&&yr<=maxX){ xticks+='<text x="'+X(yr).toFixed(1)+'" y="'+(H-12)+'" fill="#8b857b" font-size="11" text-anchor="middle" font-family="Fraunces,serif">'+yr+'</text>'; }});
+    var axisTitle='<text x="'+pl+'" y="'+(pt-9)+'" fill="#a89a80" font-size="10" font-family="Fraunces,serif">人口指数（2000=100）</text>'+
+                  '<text x="'+(W-pr)+'" y="'+(pt-9)+'" fill="#c58a78" font-size="10" text-anchor="end" font-family="Fraunces,serif">高齢化率 %</text>';
     var last=pts[pts.length-1];
-    var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+grid+xticks+
-      '<path d="'+path(pops,YP)+'" fill="none" stroke="#2b2621" stroke-width="2.6"/>'+
+    var yPop=YI(idx[idx.length-1]), yAge=YA(last.aging);
+    var lyPop=Math.max(pt+12,Math.min(H-pb-6,yPop-10)), lyAge=Math.max(pt+12,Math.min(H-pb-6,yAge-10));
+    if(Math.abs(lyPop-lyAge)<15){ if(lyPop<=lyAge){lyPop-=9;lyAge+=9;}else{lyPop+=9;lyAge-=9;} }
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+grid+axL+axR+axisTitle+xticks+
+      '<path d="'+path(idx,YI)+'" fill="none" stroke="#2b2621" stroke-width="2.6"/>'+
       '<path d="'+path(ages,YA)+'" fill="none" stroke="#a8432e" stroke-width="2.6"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#2b2621"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#a8432e"/>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmtMan(last.pop)+'人</text>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#a8432e" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
+      '<circle cx="'+X(last.year).toFixed(1)+'" cy="'+yPop.toFixed(1)+'" r="4.5" fill="#2b2621"/>'+
+      '<circle cx="'+X(last.year).toFixed(1)+'" cy="'+yAge.toFixed(1)+'" r="4.5" fill="#a8432e"/>'+
+      '<text x="'+(X(last.year)-8).toFixed(1)+'" y="'+lyPop.toFixed(1)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmtMan(last.pop)+'人</text>'+
+      '<text x="'+(X(last.year)-8).toFixed(1)+'" y="'+lyAge.toFixed(1)+'" fill="#a8432e" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
       '</svg>';
     document.getElementById('chart').innerHTML=svg;
   }

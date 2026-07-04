@@ -157,7 +157,7 @@
 
   // 2000→現在 を隔年で。人口=実数(人)、増減=前回比(人)、背景=数字からの一般解釈（断定でない）
   function tableRows(region, step) {
-    step = step || 2;
+    step = step || 1;
     var popAt = function (y) { return Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020) * 1000); };
     var agAt  = function (y) { return +Math.min(50, Math.max(8, regionAging(region.aging, y))).toFixed(1); };
     var nowYf = yearFrac();
@@ -185,23 +185,35 @@
     return rows;
   }
 
-  // 数字からの一般的な背景解釈（独自推計・特定の出来事の断定ではない）
+  // 背景＝数字から推定される「理由」（社会減・自然減・産業・雇用など。一般的な機序であり特定の出来事の断定ではない）
   function reasonFor(year, pop, prev, ag, prevAg, region) {
-    if (prev == null) return '基準年（2000年）。以降はこの年を起点に推計。';
+    if (prev == null) return '基準年（2000年）。以降はこの年からの推計。';
     var dPop = pop - prev;
-    var dPct = prev > 0 ? dPop / prev * 100 : 0;         // 前回比（隔年）
+    var dPct = prev > 0 ? dPop / prev * 100 : 0;         // 前年比
     var dAg  = prevAg == null ? 0 : (ag - prevAg);
-    var head;
-    if (dPct <= -1.6)      head = '人口が明確に減少';
-    else if (dPct <= -0.5) head = 'ゆるやかに人口減';
-    else if (dPct <  0.5)  head = 'ほぼ横ばい';
-    else if (dPct <  1.6)  head = 'ゆるやかに人口増';
-    else                   head = '人口が明確に増加';
-    var mag = (dPop === 0) ? '増減なし' : (dPop > 0 ? '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人増' : '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人減');
-    var tail = '';
-    if (dAg >= 1.2) tail = '・高齢化が進行（+' + dAg.toFixed(1) + 'pt）';
-    else if (dAg <= -0.6) tail = '・高齢化率は低下';
-    return head + '（' + mag + '）' + tail + '。数字からの推計解釈。';
+    var ind  = REGION_IND[region.region] || REGION_IND['関東'];
+    var mag  = (dPop === 0) ? '増減なし'
+             : (dPop > 0 ? '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人増'
+                         : '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人減');
+    var cause;
+    if (dPct <= -0.8) {
+      // 明確な減少：高齢化の段階で主因が変わる（社会減→自然減主導）
+      if (ag >= 36)      cause = '高齢化が進み、死亡が出生を上回る自然減が主導。若年層の進学・就職に伴う転出超過も続くとみられる';
+      else if (ag >= 30) cause = '若年層の転出超過に少子化が重なり、担い手世代が薄くなる減少と推定';
+      else               cause = '進学・就職による若年層の域外流出（社会減）が主因の減少と推定';
+      cause += '。' + ind.bad + 'も下押し';
+    } else if (dPct <= -0.2) {
+      cause = '転出超過と少子化によるゆるやかな減少と推定。' + ind.bad + 'が影を落とす';
+    } else if (dPct < 0.2) {
+      cause = '転入と転出がほぼ拮抗し横ばい。ただし自然減が始まりつつあると推定';
+    } else if (dPct < 0.8) {
+      cause = '雇用・生活利便の集積による転入がゆるやかな増加を支えると推定。' + ind.good + 'が寄与';
+    } else {
+      cause = '都市機能・雇用の集積で転入が続く増加と推定。' + ind.good + 'が牽引';
+    }
+    var agTail = dAg >= 0.8 ? '／高齢化も進行（+' + dAg.toFixed(1) + 'pt）'
+               : (dAg <= -0.4 ? '／高齢化率は低下' : '');
+    return cause + '（' + mag + agTail + '）。数字からの推定で、特定の出来事の断定ではない。';
   }
 
   // 複数地域を1つに束ねる（全国／地方ブロック／東西 用）
