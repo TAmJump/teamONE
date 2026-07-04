@@ -174,7 +174,7 @@
     years.forEach(function (yy) {
       var pop = popAt(yy), ag = agAt(yy);
       var d = prev == null ? null : pop - prev;
-      rows.push({ year: yy, pop: pop, aging: ag, delta: d, reason: reasonFor(yy, pop, prev, ag, prevAg, region) });
+      rows.push({ year: yy, pop: pop, aging: ag, delta: d, reason: reasonFor(yy, pop, prev, ag, prevAg, region) + eventFor(yy, region) });
       prev = pop; prevAg = ag;
     });
     // 現在
@@ -183,6 +183,34 @@
     rows.push({ year: '現在', pop: popN, aging: agN, delta: prev == null ? null : popN - prev, now: true,
                 reason: reasonFor('現在', popN, prev, agN, prevAg, region) });
     return rows;
+  }
+
+  // ── 検証済みの「史実」イベント（実在の出来事。推定ではなく事実） ──
+  // 全国的な出来事（年→背景）。出典：総務省人口推計・各府省白書 等。
+  var NATIONAL_EVENTS = {
+    2008: 'この年、日本の総人口が約1億2,808万人でピークに達し、以降の減少局面へ。リーマン・ショック（世界金融危機）で景気が急速に悪化した年でもある。',
+    2009: 'リーマン・ショックの影響で景気後退（GDPマイナス成長）。雇用悪化が地方の転出・出生減に波及した時期。',
+    2011: '東日本大震災（3月11日）と福島第一原発事故が発生。被災地の人口が大きく動き、全国的にも人口減少が本格化（2011年以降、総人口は連続して減少）。',
+    2020: '新型コロナウイルス感染拡大が始まった年。婚姻・出生の減少、入国制限による社会増の縮小で人口減が加速。',
+    2021: 'コロナ禍が続き、出生数の減少と超過死亡で人口減が加速。',
+    2022: 'コロナ禍3年目。出生数がさらに減少し、全国の人口減少幅が拡大。'
+  };
+  // 原発事故（2011）で避難指示区域となり人口が激減した福島の自治体
+  var FUK_FULL = { 2011: '福島第一原発事故により避難指示区域となり、全域または大部分で住民が避難。人口が激減した。' };
+  var FUK_PART = { 2011: '福島第一原発事故により一部が避難指示区域となり、住民が避難。人口が大きく減った。' };
+  // 地域固有の出来事（自治体名→{年:背景}）。検証できた史実のみを掲載。
+  var LOCAL_EVENTS = {
+    '夕張市': { 2006: '財政破綻を表明（隠れ借金・不適正な財務処理で負債は約353億円）。', 2007: '全国初の「財政再生団体」に指定。行政サービス縮小・住民負担増で若年層・子育て世代の流出が加速し、人口減が全国有数の速さに。かつて炭鉱で約12万人だった人口は大きく減少。' },
+    '双葉町': FUK_FULL, '大熊町': FUK_FULL, '浪江町': FUK_FULL, '富岡町': FUK_FULL, '楢葉町': FUK_FULL, '葛尾村': FUK_FULL, '飯舘村': FUK_FULL,
+    '南相馬市': FUK_PART, '川内村': FUK_PART, '広野町': FUK_PART, '田村市': FUK_PART, '川俣町': FUK_PART
+  };
+  function eventFor(year, region) {
+    if (typeof year !== 'number') return '';
+    var out = [];
+    var loc = region && LOCAL_EVENTS[region.name];
+    if (loc && loc[year]) out.push('【この地域の出来事（史実）】' + loc[year]);
+    if (NATIONAL_EVENTS[year]) out.push('【この年の全国的な出来事（史実）】' + NATIONAL_EVENTS[year]);
+    return out.length ? ' ' + out.join(' ') : '';
   }
 
   // 背景＝数字から推定される「理由」（社会減・自然減・産業・雇用など。一般的な機序であり特定の出来事の断定ではない）
