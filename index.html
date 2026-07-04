@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>開幕 ｜ TAmJ 地域共生インテリジェンス</title>
+<title>team ONE ｜ 地域共生インテリジェンス</title>
 <meta name="description" content="医療・介護・暮らし・地域産業を一つの連携でつなぎ直す。地域の新たな歴史が、いま開幕する。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css">
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/app.css?v=8">
+<link rel="stylesheet" href="css/site.css?v=8">
 </head>
 <body class="locked">
 
@@ -32,7 +32,7 @@
 <!-- ===== header ===== -->
 <header class="site">
   <div class="bar">
-    <a class="brand" href="index.html" style="text-decoration:none;color:inherit"><img src="assets/img/logo.png?v=6" class="lg" alt="">TAmJ 地域共生インテリジェンス<span class="en">Community Intelligence — for local welfare</span></a>
+    <a class="brand" href="index.html" style="text-decoration:none;color:inherit"><img src="assets/img/logo.png?v=6" class="lg" alt="">team ONE<span class="en">Community Intelligence — for local welfare</span></a>
     <nav class="topnav">
       <a href="index.html" class="on">ホーム</a>
       <a href="data.html">地域データ</a>
@@ -62,7 +62,7 @@
   <div class="scrim"></div>
   <div class="inner narrow" style="text-align:center">
     <div class="tag">The thesis</div>
-    <h2>連携が、バラバラの営みを<br>一つの循環に変える。</h2>
+    <h2><span class="np">連携が、バラバラの営みを</span><span class="np">一つの循環に変える。</span></h2>
     <p style="margin:0 auto">アプリが事務の時間を返し、共同の物流が雇用を生み、暮らしの支えが人をつなぎ、医療と介護が圏を重ねる。ひとつずつでは小さな力が、束ねると循環になる。</p>
   </div>
 </section>
@@ -85,7 +85,7 @@
   <div class="scrim"></div>
   <div class="inner">
     <div class="tag">Where we stand</div>
-    <h2>地域の「現在地」を、<br>独自推計で。</h2>
+    <h2><span class="np">地域の「現在地」を、</span><span class="np">独自推計で。</span></h2>
     <p>公式統計は数値が2〜3年前で止まる。国勢調査などのアンカーを今日の日付へ日次で補間し、全国すべての市区町村の人口・年齢・労働・高齢化率・社福・介護・医療・薬局を推計として示す。地方の現在は、都市の未来でもある。</p>
     <div class="cta2"><a href="data.html">全国データを開く</a></div>
   </div>
@@ -108,21 +108,30 @@
   <div class="bg" style="background-image:url('assets/img/tsuki.jpg?v=6')"></div>
   <div class="scrim"></div>
   <div class="inner narrow" style="text-align:center">
-    <h2 style="font-size:clamp(1.8rem,4.6vw,3rem)">つなぎ直せば、<br>地域はもう一度まわりだす。</h2>
+    <h2 style="font-size:clamp(1.8rem,4.6vw,3rem)"><span class="np">つなぎ直せば、</span><span class="np">地域はもう一度まわりだす。</span></h2>
   </div>
 </section>
 
 <footer class="site2">
-  <div class="brand">タムジ株式会社 ｜ TAmJ.Corp</div>
+  <div class="brand"><a href="https://tamjump.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">タムジ株式会社 ｜ TAmJ.Corp</a></div>
   <div>医療・介護・暮らし・地域産業を一つの連携でつなぎ直す構想の入り口です。<a href="data.html">地域データ</a>・<a href="impact.html">経済と投資</a> もあわせてご覧ください。</div>
   <div class="src">本サイトの数値・利回り・経済効果はすべて仮説モデル／独自推計であり、確定値ではありません。福祉法人は剰余金を配当できず、投資資金は現場へ直接は投じられません。役員報酬・内部留保の活用・投資スキームは、法令適合・利益相反管理・所轄庁調整を前提とします。特定の地域・施設・活動を指すものではありません。</div>
 </footer>
 
 <script>
 (function(){
-  var maku=document.getElementById('maku'), opened=false;
+  var maku=document.getElementById('maku');
+  if(!maku) return;
+  /* 同一セッションで一度見たらスキップ（毎回の再生を防ぐ） */
+  if(sessionStorage.getItem('maku_seen')){
+    if(maku.parentNode) maku.parentNode.removeChild(maku);
+    document.body.classList.remove('locked');
+    return;
+  }
+  var opened=false;
   function open(){
     if(opened)return; opened=true;
+    try{ sessionStorage.setItem('maku_seen','1'); }catch(e){}
     maku.classList.add('open');
     setTimeout(function(){document.getElementById('kaiChar').classList.add('writing');},450);
     setTimeout(function(){document.getElementById('makuChar').classList.add('writing');},2100);
