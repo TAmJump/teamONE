@@ -34,6 +34,24 @@
     return base2025 * (natlAging(yf) / NATL_2025);
   }
 
+  // 全国の総人口アンカー（実測：国勢調査＋推計, 千人）。2000→2008ピーク→以降減少の実際の形。
+  var NATIONAL_POP = [
+    [2000,126926],[2005,127768],[2008,128084],[2010,128057],
+    [2015,127095],[2020,126146],[2022,124947],[2024,123802],[2026,122600]
+  ];
+  // アンカー系列から任意年の人口（人）を線形補間／端は外挿
+  function seriesPopAt(series, y){
+    var a = series, n = a.length;
+    if (y <= a[0][0]) { var s0=(a[1][1]-a[0][1])/(a[1][0]-a[0][0]); return Math.round((a[0][1]+s0*(y-a[0][0]))*1000); }
+    for (var i=0;i<n-1;i++){ if (y>=a[i][0] && y<=a[i+1][0]){ var t=(y-a[i][0])/(a[i+1][0]-a[i][0]); return Math.round((a[i][1]+t*(a[i+1][1]-a[i][1]))*1000); } }
+    var sN=(a[n-1][1]-a[n-2][1])/(a[n-1][0]-a[n-2][0]); return Math.round((a[n-1][1]+sN*(y-a[n-1][0]))*1000);
+  }
+  // 地域の任意年の人口（人）。popSeries があれば実データ系列、無ければ CAGR 補外。
+  function regionPop(region, y){
+    if (region.popSeries) return seriesPopAt(region.popSeries, y);
+    return Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020) * 1000);
+  }
+
   function yearFrac(date) {
     const d = date || new Date();
     const y = d.getFullYear();
@@ -58,9 +76,9 @@
     const yf = yearFrac(date);
     const dt = yf - 2020;
 
-    // 人口（千人）— 2020国勢を成長率で補外
-    const popK = region.pop2020 * Math.pow(1 + region.growth / 100, dt);
-    const pop = Math.round(popK * 1000);
+    // 人口（人）— popSeries があれば実データ、無ければ2020国勢を成長率で補外
+    const pop = regionPop(region, yf);
+    const popRatio = region.pop2020 > 0 ? pop / (region.pop2020 * 1000) : 1;
 
     // 高齢化率（全国比率でスケール）・年少割合（微ドリフト）
     let aging = regionAging(region.aging, yf);
@@ -79,7 +97,6 @@
     const labor = Math.round(workingN * (meta.laborForceRate || 0.82));
 
     // 施設数 — 人口変動に平方根で追随（施設は人口ほど急には動かない）
-    const popRatio = popK / region.pop2020;
     const facMul = Math.pow(popRatio, DRIFT.facDamp);
     const f = region.facilities;
     const facilities = {};
@@ -136,16 +153,12 @@
     const pts = [];
     const nowYf = yearFrac();
     for (let y = 2000; y <= Math.floor(nowYf); y++) {
-      const dt = y - 2020;
-      const popK = region.pop2020 * Math.pow(1 + region.growth / 100, dt);
       let aging = Math.min(50, Math.max(8, regionAging(region.aging, y)));
-      pts.push({ year: y, pop: Math.round(popK*1000), aging: +aging.toFixed(1) });
+      pts.push({ year: y, pop: regionPop(region, y), aging: +aging.toFixed(1) });
     }
     // 末尾に「現在」点
-    const dt = nowYf - 2020;
-    const popK = region.pop2020 * Math.pow(1 + region.growth / 100, dt);
     let agingNow = Math.min(50, Math.max(8, regionAging(region.aging, nowYf)));
-    pts.push({ year: +nowYf.toFixed(2), pop: Math.round(popK*1000), aging: +agingNow.toFixed(1), now: true });
+    pts.push({ year: +nowYf.toFixed(2), pop: regionPop(region, nowYf), aging: +agingNow.toFixed(1), now: true });
     return pts;
   }
 
@@ -158,7 +171,7 @@
   // 2000→現在 を隔年で。人口=実数(人)、増減=前回比(人)、背景=数字からの一般解釈（断定でない）
   function tableRows(region, step) {
     step = step || 1;
-    var popAt = function (y) { return Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020) * 1000); };
+    var popAt = function (y) { return regionPop(region, y); };
     var agAt  = function (y) { return +Math.min(50, Math.max(8, regionAging(region.aging, y))).toFixed(1); };
     var nowYf = yearFrac();
     var nowY  = Math.floor(nowYf);
@@ -170,7 +183,7 @@
 
     // 数値行を先に作る
     var rows = years.map(function (yy) { return { year: yy, pop: popAt(yy), aging: agAt(yy) }; });
-    rows.push({ year: '現在', pop: Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020) * 1000),
+    rows.push({ year: '現在', pop: regionPop(region, nowYf),
                 aging: +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1), now: true });
     for (var i = 0; i < rows.length; i++) rows[i].delta = i === 0 ? null : rows[i].pop - rows[i - 1].pop;
 
@@ -337,6 +350,6 @@
     return { rows: rows, popStory: popStory, good: good, bad: bad, careStory: careStory, industry: ind.base };
   }
 
-  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, aggregate, yearFrac, fmt, fmtMan };
+  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, aggregate, regionPop, NATIONAL_POP, yearFrac, fmt, fmtMan };
 
 })(typeof window !== 'undefined' ? window : globalThis);

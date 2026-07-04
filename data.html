@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=11">
+<link rel="stylesheet" href="css/app.css?v=12">
 </head>
 <body>
 
@@ -72,13 +72,23 @@
   </div>
 </div>
 
+<div class="wrap">
+  <section class="ranking" id="ranking">
+    <div class="rank-head">
+      <h2>都道府県ランキング（2000 → 現在）</h2>
+      <p class="cap">人口・高齢化率・労働力は<b>独自推計</b>（今日時点）。県内総生産は<b>内閣府「県民経済計算」2019年度・名目</b>（兆円）。<b>人口増減率は長期トレンドに基づく推計</b>で、順位の傾向（都市部が増・地方が減）は実態とおおむね一致しますが、%の水準は都市部でやや大きめに出ます（実測の2000→現在の国勢調査値・外国人労働者数は次版で反映）。<b>列見出しクリック</b>で並び替え。</p>
+    </div>
+    <div class="rank-wrap"><table class="rtbl" id="rtbl"></table></div>
+  </section>
+</div>
+
 <footer class="site">
   <div class="brand"><a href="https://tamjump.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">タムジ株式会社 ｜ TAmJ.Corp — 地域インテリジェンス</a></div>
   <div>本サービスの数値は<b style="color:rgba(250,248,244,.85)">独自マクロ推計</b>です。人口・高齢化率は公式統計のアンカー値に基づき、施設数・労働人口・現在値は、それらを今日の日付へ補間・按分した推計であり、確定値ではありません。実務判断は一次統計・現地確認と併用してください。</div>
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=13"></script>
+<script src="js/engine.js?v=14"></script>
 <script>
 (function(){
   'use strict';
@@ -90,7 +100,7 @@
     var cov=META.coverage||{}; 
     document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP')+'　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村を収録';
     document.getElementById('sources').textContent='出典（アンカー）：'+ (META.sources||[]).join(' / ');
-    initSelectors(); renderTicker(); renderNational();
+    initSelectors(); renderTicker(); renderNational(); renderRanking();
     window.addEventListener('resize', fitBig);
     if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fitBig); }
   }).catch(function(e){
@@ -168,7 +178,7 @@
       if(it.type==='pref'){ curPref=it.ref; region=it.ref; name=it.ref.name; selM.disabled=false; selM.value=''; }
       else {
         curPref=null; selM.disabled=true; selM.value='';
-        if(it.type==='all'){ region=MacroEngine.aggregate(DATA.prefectures,'全国','関東'); name='全国'; }
+        if(it.type==='all'){ region=MacroEngine.aggregate(DATA.prefectures,'全国','関東'); region.popSeries=MacroEngine.NATIONAL_POP; name='全国'; }
         else if(it.type==='block'){ var set=BLOCKS[it.key]; region=MacroEngine.aggregate(DATA.prefectures.filter(function(p){return set.indexOf(p.region)>=0;}), it.label.split('（')[0], '関東'); name=it.label.split('（')[0]; }
         else if(it.type==='region'){ region=MacroEngine.aggregate(DATA.prefectures.filter(function(p){return p.region===it.key;}), it.key+'地方', it.key); name=it.key+'地方'; }
       }
@@ -185,6 +195,7 @@
   function renderTicker(){
     var natl={name:'全国',region:'全国',pop2020:META.national.pop2020,aging:META.national.aging2025,youth:META.national.youth2025,growth:-0.5,
       facilities:{shafuku:META.national.shafuku,hospital:META.national.hospital,clinic:META.national.clinic,dental:META.national.dental,pharmacy:META.national.pharmacy,kaigo:META.national.kaigo,tokuyo:META.national.tokuyo,roken:META.national.roken}};
+    natl.popSeries=MacroEngine.NATIONAL_POP;
     var e=MacroEngine.estimateToday(natl,META);
     var items=[
       ['総人口', MacroEngine.fmtMan(e.pop),'人'],
@@ -203,7 +214,52 @@
   function renderNational(){
     var natl={name:'全国',region:'全国',pop2020:META.national.pop2020,aging:META.national.aging2025,youth:META.national.youth2025,growth:-0.5,
       facilities:{shafuku:META.national.shafuku,hospital:META.national.hospital,clinic:META.national.clinic,dental:META.national.dental,pharmacy:META.national.pharmacy,kaigo:META.national.kaigo,tokuyo:META.national.tokuyo,roken:META.national.roken}};
+    natl.popSeries=MacroEngine.NATIONAL_POP;
     renderArea(natl,'','全国');
+  }
+
+  // ── 都道府県ランキング ──
+  // 県内総生産（兆円）：内閣府「県民経済計算」2019年度・名目
+  var PREF_GDP={'北海道':20.46,'青森県':4.53,'岩手県':4.85,'宮城県':9.83,'秋田県':3.62,'山形県':4.34,'福島県':7.99,'茨城県':14.09,'栃木県':9.26,'群馬県':9.31,'埼玉県':23.64,'千葉県':21.28,'東京都':115.68,'神奈川県':35.21,'新潟県':9.19,'富山県':4.91,'石川県':4.78,'福井県':3.69,'山梨県':3.57,'長野県':8.45,'岐阜県':7.94,'静岡県':17.87,'愛知県':40.91,'三重県':8.09,'滋賀県':6.92,'京都府':10.77,'大阪府':41.19,'兵庫県':22.20,'奈良県':3.93,'和歌山県':3.74,'鳥取県':1.89,'島根県':2.69,'岡山県':7.84,'広島県':11.97,'山口県':6.35,'徳島県':3.22,'香川県':4.01,'愛媛県':5.15,'高知県':2.46,'福岡県':19.94,'佐賀県':3.22,'長崎県':4.79,'熊本県':6.36,'大分県':4.53,'宮崎県':3.70,'鹿児島県':5.77,'沖縄県':4.63};
+  var RANK_ROWS=null, rankSort={key:'chg',dir:-1};
+  function buildRankRows(){
+    return DATA.prefectures.map(function(p){
+      var e=MacroEngine.estimateToday(p,META);
+      var pop2000=MacroEngine.regionPop(p,2000);
+      var chg=pop2000>0?(e.pop-pop2000)/pop2000*100:0;
+      return { name:p.name, pop:e.pop, chg:chg, aging:e.aging, working:e.working, labor:e.labor, gdp:PREF_GDP[p.name]||0 };
+    });
+  }
+  function renderRanking(){
+    if(!RANK_ROWS) RANK_ROWS=buildRankRows();
+    var cols=[
+      {key:'name',  label:'都道府県', num:false},
+      {key:'pop',   label:'現在人口（人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'chg',   label:'人口増減率<br>2000→現在', num:true, fmt:function(v){return (v>0?'+':'')+v.toFixed(1)+'%';}, cls:function(v){return v<0?'neg':'pos';}},
+      {key:'aging', label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
+      {key:'working',label:'生産年齢率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
+      {key:'labor', label:'労働人口（推計）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'gdp',   label:'県内総生産<br>（兆円・2019）', num:true, fmt:function(v){return v.toFixed(2);}}
+    ];
+    var rows=RANK_ROWS.slice().sort(function(a,b){
+      var k=rankSort.key; if(k==='name') return a.name.localeCompare(b.name,'ja')*rankSort.dir;
+      return (a[k]-b[k])*rankSort.dir;
+    });
+    var h='<thead><tr><th class="rk">#</th>';
+    cols.forEach(function(c){ var on=(c.key===rankSort.key); h+='<th class="'+(c.num?'num ':'')+'sortable'+(on?' on':'')+'" data-k="'+c.key+'">'+c.label+(on?(rankSort.dir<0?' ▼':' ▲'):'')+'</th>'; });
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      h+='<tr><td class="rk">'+(i+1)+'</td><td class="pf">'+r.name+'</td>';
+      cols.slice(1).forEach(function(c){ var v=r[c.key]; var cls=c.cls?c.cls(v):''; h+='<td class="num '+cls+'">'+c.fmt(v)+'</td>'; });
+      h+='</tr>';
+    });
+    h+='</tbody>';
+    var t=document.getElementById('rtbl'); t.innerHTML=h;
+    t.querySelectorAll('th.sortable').forEach(function(th){ th.addEventListener('click',function(){
+      var k=th.getAttribute('data-k');
+      if(rankSort.key===k) rankSort.dir*=-1; else { rankSort.key=k; rankSort.dir=(k==='name')?1:-1; }
+      renderRanking();
+    });});
   }
 
   // ── ダッシュボード描画 ──
