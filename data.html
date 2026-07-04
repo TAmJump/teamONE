@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=13">
+<link rel="stylesheet" href="css/app.css?v=14">
 </head>
 <body>
 
@@ -76,7 +76,7 @@
   <section class="ranking" id="ranking">
     <div class="rank-head">
       <h2>都道府県ランキング（2000 → 現在）</h2>
-      <p class="cap">人口・高齢化率・労働力は<b>独自推計</b>（今日時点）。県内総生産は<b>内閣府「県民経済計算」2019年度・名目</b>（兆円）。<b>人口増減率は長期トレンドに基づく推計</b>で、順位の傾向（都市部が増・地方が減）は実態とおおむね一致しますが、%の水準は都市部でやや大きめに出ます（実測の2000→現在の国勢調査値・外国人労働者数は次版で反映）。<b>列見出しクリック</b>で並び替え。</p>
+      <p class="cap">人口・高齢化率・労働力は<b>独自推計</b>（今日時点）。<b>県内総生産＝内閣府「県民経済計算」2019年度・名目（兆円）</b>。<b>外国人労働者数＝厚労省「外国人雇用状況の届出状況」令和5年(2023)10月末（人）</b>、外国人比率は労働人口に対する割合。1行目は<b>全国合計</b>。人口増減率は長期トレンド推計で、順位の傾向は実態とおおむね一致しますが%の水準は都市部でやや大きめ（実測の2000国勢調査値は次版）。<b>列見出しクリック</b>で並び替え。</p>
     </div>
     <div class="rank-wrap"><table class="rtbl" id="rtbl"></table></div>
   </section>
@@ -88,7 +88,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=15"></script>
+<script src="js/engine.js?v=16"></script>
 <script>
 (function(){
   'use strict';
@@ -221,13 +221,22 @@
   // ── 都道府県ランキング ──
   // 県内総生産（兆円）：内閣府「県民経済計算」2019年度・名目
   var PREF_GDP={'北海道':20.46,'青森県':4.53,'岩手県':4.85,'宮城県':9.83,'秋田県':3.62,'山形県':4.34,'福島県':7.99,'茨城県':14.09,'栃木県':9.26,'群馬県':9.31,'埼玉県':23.64,'千葉県':21.28,'東京都':115.68,'神奈川県':35.21,'新潟県':9.19,'富山県':4.91,'石川県':4.78,'福井県':3.69,'山梨県':3.57,'長野県':8.45,'岐阜県':7.94,'静岡県':17.87,'愛知県':40.91,'三重県':8.09,'滋賀県':6.92,'京都府':10.77,'大阪府':41.19,'兵庫県':22.20,'奈良県':3.93,'和歌山県':3.74,'鳥取県':1.89,'島根県':2.69,'岡山県':7.84,'広島県':11.97,'山口県':6.35,'徳島県':3.22,'香川県':4.01,'愛媛県':5.15,'高知県':2.46,'福岡県':19.94,'佐賀県':3.22,'長崎県':4.79,'熊本県':6.36,'大分県':4.53,'宮崎県':3.70,'鹿児島県':5.77,'沖縄県':4.63};
-  var RANK_ROWS=null, rankSort={key:'chg',dir:-1};
+  // 外国人労働者数（人）：厚労省「外国人雇用状況の届出状況」令和5年(2023)10月末・別表2
+  var PREF_FW={'北海道':35439,'青森県':5584,'岩手県':7082,'宮城県':16586,'秋田県':3161,'山形県':5743,'福島県':11987,'茨城県':54875,'栃木県':32728,'群馬県':50324,'埼玉県':103515,'千葉県':78854,'東京都':542992,'神奈川県':119466,'新潟県':12462,'富山県':13427,'石川県':13068,'福井県':11101,'山梨県':11227,'長野県':24893,'岐阜県':40028,'静岡県':74859,'愛知県':210159,'三重県':33753,'滋賀県':24791,'京都府':28506,'大阪府':146384,'兵庫県':57375,'奈良県':8447,'和歌山県':4682,'鳥取県':3526,'島根県':4978,'岡山県':24052,'広島県':44093,'山口県':10931,'徳島県':5656,'香川県':12302,'愛媛県':12476,'高知県':4510,'福岡県':64990,'佐賀県':7350,'長崎県':8663,'熊本県':18226,'大分県':9982,'宮崎県':7021,'鹿児島県':12015,'沖縄県':14406};
+  var RANK_ROWS=null, NATL_ROW=null, rankSort={key:'chg',dir:-1};
+  function mkRow(name,e,pop2000,gdp,fw){
+    var chg=pop2000>0?(e.pop-pop2000)/pop2000*100:0;
+    return { name:name, pop:e.pop, chg:chg, aging:e.aging, working:e.working, labor:e.labor, gdp:gdp, fw:fw, fwr:e.labor>0?fw/e.labor*100:0 };
+  }
   function buildRankRows(){
+    // 全国合計行
+    var natl=MacroEngine.aggregate(DATA.prefectures,'全国','関東'); natl.popSeries=MacroEngine.NATIONAL_POP;
+    var ne=MacroEngine.estimateToday(natl,META);
+    var gSum=0,fSum=0; DATA.prefectures.forEach(function(p){ gSum+=PREF_GDP[p.name]||0; fSum+=PREF_FW[p.name]||0; });
+    NATL_ROW=mkRow('全国',ne,MacroEngine.regionPop(natl,2000),+gSum.toFixed(2),fSum);
     return DATA.prefectures.map(function(p){
       var e=MacroEngine.estimateToday(p,META);
-      var pop2000=MacroEngine.regionPop(p,2000);
-      var chg=pop2000>0?(e.pop-pop2000)/pop2000*100:0;
-      return { name:p.name, pop:e.pop, chg:chg, aging:e.aging, working:e.working, labor:e.labor, gdp:PREF_GDP[p.name]||0 };
+      return mkRow(p.name,e,MacroEngine.regionPop(p,2000),PREF_GDP[p.name]||0,PREF_FW[p.name]||0);
     });
   }
   function renderRanking(){
@@ -239,7 +248,9 @@
       {key:'aging', label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
       {key:'working',label:'生産年齢率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
       {key:'labor', label:'労働人口（推計）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'gdp',   label:'県内総生産<br>（兆円・2019）', num:true, fmt:function(v){return v.toFixed(2);}}
+      {key:'gdp',   label:'県内総生産<br>（兆円・2019）', num:true, fmt:function(v){return v.toFixed(2);}},
+      {key:'fw',    label:'外国人労働者<br>（人・2023）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'fwr',   label:'外国人比率<br>（労働人口比）', num:true, fmt:function(v){return v.toFixed(1)+'%';}}
     ];
     var rows=RANK_ROWS.slice().sort(function(a,b){
       var k=rankSort.key; if(k==='name') return a.name.localeCompare(b.name,'ja')*rankSort.dir;
@@ -248,6 +259,10 @@
     var h='<thead><tr><th class="rk">#</th>';
     cols.forEach(function(c){ var on=(c.key===rankSort.key); h+='<th class="'+(c.num?'num ':'')+'sortable'+(on?' on':'')+'" data-k="'+c.key+'">'+c.label+(on?(rankSort.dir<0?' ▼':' ▲'):'')+'</th>'; });
     h+='</tr></thead><tbody>';
+    // 全国合計（固定・先頭）
+    h+='<tr class="natl"><td class="rk">全</td><td class="pf">全国 合計</td>';
+    cols.slice(1).forEach(function(c){ var v=NATL_ROW[c.key]; var cls=c.cls?c.cls(v):''; h+='<td class="num '+cls+'">'+c.fmt(v)+'</td>'; });
+    h+='</tr>';
     rows.forEach(function(r,i){
       h+='<tr><td class="rk">'+(i+1)+'</td><td class="pf">'+r.name+'</td>';
       cols.slice(1).forEach(function(c){ var v=r[c.key]; var cls=c.cls?c.cls(v):''; h+='<td class="num '+cls+'">'+c.fmt(v)+'</td>'; });
@@ -307,11 +322,16 @@
 
   // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──
   function fitBig(){
-    document.querySelectorAll('#cards .big').forEach(function(el){
+    var els=[].slice.call(document.querySelectorAll('#cards .big'));
+    if(!els.length) return;
+    var size=999;
+    els.forEach(function(el){
       el.style.fontSize='';
-      var size=parseFloat(getComputedStyle(el).fontSize)||28, guard=0;
-      while(el.scrollWidth>el.clientWidth+1 && size>12 && guard<48){ size-=1; el.style.fontSize=size+'px'; guard++; }
+      var s=parseFloat(getComputedStyle(el).fontSize)||28, guard=0;
+      while(el.scrollWidth>el.clientWidth+1 && s>12 && guard<48){ s-=1; el.style.fontSize=s+'px'; guard++; }
+      if(s<size) size=s;
     });
+    els.forEach(function(el){ el.style.fontSize=size+'px'; });  // 全カードを同じ大きさに揃える
   }
 
   // ── 数値表（隔年・人・増減人・背景） ──
@@ -325,8 +345,7 @@
       var d = r.delta==null ? '—' : (r.delta>0?'+':'')+MacroEngine.fmt(r.delta);
       var dc = r.delta==null?'':(r.delta<0?'neg':(r.delta>0?'pos':''));
       var cls = r.now?' class="now"':(r.future?' class="fut"':'');
-      var ylabel = r.future ? (r.year+'<span class="fbadge">予測</span>') : r.year;
-      h+='<tr'+cls+'><td>'+ylabel+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td><td class="rz">'+(r.reason||'<span style=\'color:var(--ink-faint);opacity:.5\'>—</span>')+'</td></tr>';
+      h+='<tr'+cls+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td><td class="rz">'+(r.reason||'<span style=\'color:var(--ink-faint);opacity:.5\'>—</span>')+'</td></tr>';
     });
     h+='</tbody></table>';
     document.getElementById('dtable').innerHTML=h;
@@ -406,10 +425,10 @@
       '<circle cx="'+nowX.toFixed(1)+'" cy="'+YA(ages[ni]).toFixed(1)+'" r="4.5" fill="#a8432e"/>'+
       '<circle cx="'+X(lastP.year).toFixed(1)+'" cy="'+YI(idx[ei]).toFixed(1)+'" r="4" fill="none" stroke="#2b2621" stroke-width="1.6"/>'+
       '<circle cx="'+X(lastP.year).toFixed(1)+'" cy="'+YA(ages[ei]).toFixed(1)+'" r="4" fill="none" stroke="#a8432e" stroke-width="1.6"/>'+
-      '<text x="'+(nowX-8).toFixed(1)+'" y="'+lyN.toFixed(1)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmtMan(nowP.pop)+'人</text>'+
-      '<text x="'+(nowX-8).toFixed(1)+'" y="'+laN.toFixed(1)+'" fill="#a8432e" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+nowP.aging.toFixed(1)+'%</text>'+
-      '<text x="'+(X(lastP.year)-6).toFixed(1)+'" y="'+lyE.toFixed(1)+'" fill="#2b2621" font-size="11" text-anchor="end" font-family="Fraunces,serif" opacity="0.8">'+MacroEngine.fmtMan(lastP.pop)+'人</text>'+
-      '<text x="'+(X(lastP.year)-6).toFixed(1)+'" y="'+laE.toFixed(1)+'" fill="#a8432e" font-size="11" text-anchor="end" font-family="Fraunces,serif" opacity="0.8">'+lastP.aging.toFixed(1)+'%</text>'+
+      '<text x="'+(nowX-8).toFixed(1)+'" y="'+lyN.toFixed(1)+'" fill="#2b2621" stroke="#faf6ec" stroke-width="3.5" paint-order="stroke" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmtMan(nowP.pop)+'人</text>'+
+      '<text x="'+(nowX-8).toFixed(1)+'" y="'+laN.toFixed(1)+'" fill="#a8432e" stroke="#faf6ec" stroke-width="3.5" paint-order="stroke" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+nowP.aging.toFixed(1)+'%</text>'+
+      '<text x="'+(X(lastP.year)-6).toFixed(1)+'" y="'+lyE.toFixed(1)+'" fill="#2b2621" stroke="#faf6ec" stroke-width="3.5" paint-order="stroke" font-size="11" text-anchor="end" font-family="Fraunces,serif" opacity="0.85">'+MacroEngine.fmtMan(lastP.pop)+'人</text>'+
+      '<text x="'+(X(lastP.year)-6).toFixed(1)+'" y="'+laE.toFixed(1)+'" fill="#a8432e" stroke="#faf6ec" stroke-width="3.5" paint-order="stroke" font-size="11" text-anchor="end" font-family="Fraunces,serif" opacity="0.85">'+lastP.aging.toFixed(1)+'%</text>'+
       '</svg>';
     document.getElementById('chart').innerHTML=svg;
   }

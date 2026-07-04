@@ -197,15 +197,23 @@
     for (var fy = nowY + 1; fy <= 2040; fy += step) rows.push({ year: fy, pop: popAt(fy), aging: agAt(fy), future: true });
     for (var i = 0; i < rows.length; i++) rows[i].delta = i === 0 ? null : rows[i].pop - rows[i - 1].pop;
 
-    // 背景は「トピックのある年だけ」：局面が変わった年＋検証済み史実の年（他は空欄）
-    var prevKey = null;
+    // 背景は「トピックのある年だけ」：局面が変わった年＋節目（しきい値到達）＋検証済み史実の年（他は空欄）
+    var prevKey = null, base2000 = rows[0].pop;
     rows.forEach(function (r, i) {
       var yNum = (typeof r.year === 'number') ? r.year : null;
       var note = '';
       if (i === 0) { note = '基準年（2000年）。以降はこの年からの推計。'; prevKey = phaseKey(r, null, region).key; }
       else {
-        var pk = phaseKey(r, rows[i - 1], region);
+        var pr = rows[i - 1];
+        var pk = phaseKey(r, pr, region);
         if (pk.key !== prevKey) { note = pk.text; prevKey = pk.key; }   // 局面が変わった年だけ機序を書く
+        // 節目（しきい値の到達）＝実質的な交差点
+        var ms = [];
+        [30, 35, 40].forEach(function (th) { if (pr.aging < th && r.aging >= th) ms.push('高齢化率が' + th + '%を突破（老年人口が' + (th/10) + '割超に）'); });
+        var c = (r.pop - base2000) / base2000 * 100, cp = (pr.pop - base2000) / base2000 * 100;
+        [-10, -20, -30].forEach(function (th) { if (cp > th && c <= th) ms.push('人口が2000年比 約' + Math.abs(th) + '%減に到達'); });
+        [10, 20].forEach(function (th) { if (cp < th && c >= th) ms.push('人口が2000年比 約' + th + '%増に到達'); });
+        if (ms.length) note = (note ? note + ' ' : '') + '【節目】' + ms.join('／') + '。';
       }
       var ev = yNum != null ? eventFor(yNum, region) : '';
       if (ev) note = note ? (note + ' ' + ev.trim()) : ev.trim();

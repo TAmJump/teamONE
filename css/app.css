@@ -192,7 +192,7 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .ranking .cap{font-size:.8rem;color:var(--ink-faint);line-height:1.7;margin-bottom:14px}
 .ranking .cap b{color:var(--gold-deep)}
 .rank-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px}
-.rtbl{width:100%;border-collapse:collapse;font-size:.86rem;min-width:720px}
+.rtbl{width:100%;border-collapse:collapse;font-size:.84rem;min-width:920px}
 .rtbl th,.rtbl td{padding:8px 12px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
 .rtbl th{position:sticky;top:0;background:var(--gold-wash);color:var(--gold-deep);font-family:var(--sans-jp);font-weight:700;font-size:.75rem;line-height:1.3;z-index:1}
 .rtbl th.sortable{cursor:pointer;user-select:none}
@@ -204,7 +204,12 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .rtbl td.neg{color:var(--coral)}
 .rtbl tbody tr:hover{background:var(--gold-wash)}
 
-/* 数値表：将来（予測）行 */
-.dtbl tr.fut td{color:var(--ink-faint);background:rgba(164,134,63,.04)}
-.dtbl tr.fut td.num{color:var(--ink-soft)}
-.fbadge{display:inline-block;margin-left:6px;font-family:var(--sans-jp);font-size:.62rem;font-weight:700;color:#fff;background:var(--gold);border-radius:8px;padding:1px 6px;vertical-align:middle;letter-spacing:.04em}
+/* 数値表：将来（予測）行＝色で区別（バッジ無し） */
+.dtbl tr.fut td{color:var(--gold-deep);background:rgba(164,134,63,.06)}
+.dtbl tr.fut td:first-child{font-weight:600}
+.dtbl tr.fut td.num{color:var(--gold-deep)}
+.dtbl tr.fut td.neg{color:#b06a3a}
+/* ランキング：全国合計行 */
+.rtbl tr.natl td{background:var(--ink);color:var(--paper-warm);font-weight:700;border-bottom:2px solid var(--gold)}
+.rtbl tr.natl td.pf{color:#fff}
+.rtbl tr.natl td.rk{color:var(--gold)}
