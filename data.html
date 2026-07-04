@@ -95,7 +95,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=18"></script>
+<script src="js/engine.js?v=19"></script>
 <script>
 (function(){
   'use strict';
@@ -304,9 +304,9 @@
       {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
       {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人 ／ '+fb(e.fill.shafuku)+'（人口あたり・全国平均=100）'},
       {lbl:'介護事業所（介護保険サービス事業所の総数）', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'在宅系（訪問介護・通所・居宅介護支援・福祉用具・訪問看護 等）＋居住・施設系（特養・老健・介護医療院、有料老人ホーム〈特定施設・住宅型〉、グループホーム、小規模多機能、その他）。介護施設ベッド（特養'+MacroEngine.fmt(e.facilities.tokuyo)+'・老健'+MacroEngine.fmt(e.facilities.roken)+'≒'+MacroEngine.fmtMan(e.careBeds)+'床）÷要介護等認定者 '+fb(e.fill.kaigoBed)+'（全国平均=100／有料・GH等の定員は未算入）'},
-      {lbl:'医療機関（歯科含む）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)+'（医療法上は歯科診療所も医療機関）'},
+      {lbl:'医療機関（病院・一般診療所）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 住民 '+MacroEngine.fmt(e.per.hospital)+'人に病院1・'+MacroEngine.fmt(e.per.clinic)+'人に診療所1'},
+      {lbl:'歯科診療所', big:MacroEngine.fmt(e.facilities.dental), unit:'施設', sub:'住民 '+MacroEngine.fmt(e.per.dental)+'人に1 ／ '+fb(e.fill.dental)+'（人口あたり・全国平均=100）'},
       {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国平均=100）'},
-      {lbl:'医療アクセス（住民あたり施設密度）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所 ／ '+fb(e.fill.clinic)+'（診療所・全国平均=100）'},
     ];
     var wrap=document.getElementById('cards'); wrap.innerHTML='';
     cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
@@ -349,7 +349,7 @@
   // この指標の見方（分母・数値の限界）
   function renderIndicatorNote(){
     var el=document.getElementById('indicatorNote'); if(!el) return;
-    el.innerHTML='<b>この指標の見方</b>： <b>社会福祉法人＝法人数</b>。特養・老健などの"施設数"はここに<b>含みません</b>（法人と施設は別の軸）。参考：特養は主に社会福祉法人、老健は主に医療法人が運営。 <b>介護事業所＝介護保険サービス事業所の総数</b>（在宅系＝訪問・通所・居宅介護支援・福祉用具・訪問看護 等／居住・施設系＝特養・老健・介護医療院、有料老人ホーム〈特定施設・住宅型〉、グループホーム、小規模多機能 等）。 <b>介護の充足率＝介護施設ベッド数（特養・老健の推計定員）÷要介護等認定者</b>を全国平均=100で比較（有料・GH等の定員は未算入）。 <b>医療アクセス＝住民あたりの施設密度</b>（住民◯人に病院・診療所1）。少ないほど1施設が多くの住民をカバー。 <b>医療機関</b>は医療法上、病院・一般診療所に加え歯科診療所を含みます。 いずれも密度の目安で、質・救急体制（一次/二次救急）・診療科の充実度は反映しません。';
+    el.innerHTML='<b>この指標の見方</b>： <b>社会福祉法人＝法人数</b>。特養・老健などの"施設数"はここに<b>含みません</b>（法人と施設は別の軸）。参考：特養は主に社会福祉法人、老健は主に医療法人が運営。 <b>介護事業所＝介護保険サービス事業所の総数</b>（在宅系＝訪問・通所・居宅介護支援・福祉用具・訪問看護 等／居住・施設系＝特養・老健・介護医療院、有料老人ホーム〈特定施設・住宅型〉、グループホーム、小規模多機能 等）。 <b>介護の充足率＝介護施設ベッド数（特養・老健の推計定員）÷要介護等認定者</b>を全国平均=100で比較（有料・GH等の定員は未算入）。 <b>医療機関＝病院・一般診療所</b>（歯科診療所は別項目にしました）。 いずれも密度の目安で、質・救急体制（一次/二次救急）・診療科の充実度は反映しません。';
   }
 
   // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──

@@ -109,8 +109,8 @@
       kamoku[k] = Math.round(facilities.clinic * meta.kamoku[k]);
     });
 
-    // 医療機関総数（病院＋一般診療所＋歯科）
-    const medTotal = facilities.hospital + facilities.clinic + facilities.dental;
+    // 医療機関総数（病院＋一般診療所。歯科は別項目）
+    const medTotal = facilities.hospital + facilities.clinic;
 
     // 各エリアの実人口を分母にした「住民◯人あたり1施設」（10万対の固定分母は使わない）
     const rpf = (n) => n > 0 ? Math.round(pop / n) : 0;
@@ -131,6 +131,7 @@
       clinic:   fillRate(facilities.clinic,    pop,      nat.clinic,   natPop),
       hospital: fillRate(facilities.hospital,  pop,      nat.hospital, natPop),
       pharmacy: fillRate(facilities.pharmacy,  pop,      nat.pharmacy, natPop),
+      dental:   fillRate(facilities.dental,    pop,      nat.dental,   natPop),
     };
 
     // 要介護・要支援認定者（介護度別・推計）：65歳以上×全国認定率19.4%を、全国の介護度別割合で按分
@@ -161,6 +162,7 @@
         kaigo: rpf(facilities.kaigo),
         pharmacy: rpf(facilities.pharmacy),
         shafuku: rpf(facilities.shafuku),
+        dental: rpf(facilities.dental),
       },
     };
   }
