@@ -61,7 +61,10 @@
         <div class="cap" id="trendCap">独自推計。<span style="color:#0a63d6;font-weight:600">青＝人口（千人）</span>、<span style="color:#0f1720;font-weight:600">黒＝高齢化率（%）</span>。</div>
         <div id="chart"></div>
         <div class="lg"><span><span class="dot" style="background:#0a63d6"></span>人口</span><span><span class="dot" style="background:#0f1720"></span>高齢化率</span></div>
+        <div id="dtable"></div>
       </div>
+
+      <div class="history" id="history"></div>
 
       <div class="note" id="rings"></div>
   </div>
@@ -164,11 +167,11 @@
         html:'<div class="age3"><div class="y" style="width:'+e.youth+'%"></div><div class="w" style="width:'+e.working+'%"></div><div class="e" style="width:'+e.aging+'%"></div></div>'+
              '<div class="age3-legend"><span><span class="dot" style="background:var(--gold);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>年少 '+e.youth.toFixed(1)+'%</span><span><span class="dot" style="background:var(--ink-faint);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>生産年齢 '+e.working.toFixed(1)+'%</span><span><span class="dot" style="background:var(--gold-deep);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>老年 '+e.aging.toFixed(1)+'%</span></div>'},
       {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
-      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'人口10万対 '+e.per.shafukuPer10k},
+      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人'},
       {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)},
       {lbl:'医療機関', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)},
-      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'人口10万対 '+e.per.pharmacyPer10k},
-      {lbl:'医療密度（10万対）', big:e.per.clinicPer10k.toFixed(1), unit:'診療所', sub:'病院 '+e.per.hospitalPer10k+' ／ 介護 '+e.per.kaigoPer10k},
+      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店'},
+      {lbl:'医療アクセス（住民あたり）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所'},
     ];
     var wrap=document.getElementById('cards'); wrap.innerHTML='';
     cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
@@ -182,8 +185,40 @@
       b.innerHTML='<div class="nm">'+k+'</div><div class="tr"><div class="fl" style="width:'+(km[k]/maxK*100)+'%"></div></div><div class="vl num">'+MacroEngine.fmt(km[k])+'</div>'; kb.appendChild(b); });
 
     drawChart(region);
+    renderTable(region);
+    renderHistory(region, e);
     renderRings(region, e);
     countUp();
+  }
+
+  // ── 数値表 ──
+  function renderTable(region){
+    var rows=MacroEngine.tableRows(region);
+    var h='<table class="dtbl"><thead><tr><th>年</th><th>総人口（千人）</th><th>増減</th><th>高齢化率</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      var d = r.delta==null ? '—' : (r.delta>0?'+':'')+MacroEngine.fmt(r.delta);
+      var dc = r.delta==null?'':(r.delta<0?'neg':(r.delta>0?'pos':''));
+      h+='<tr'+(r.now?' class="now"':'')+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td></tr>';
+    });
+    h+='</tbody></table>';
+    document.getElementById('dtable').innerHTML=h;
+  }
+
+  // ── 沿革・背景（推計からの解釈） ──
+  function renderHistory(region, e){
+    var n=MacroEngine.narrative(region, e);
+    var good=n.good.map(function(x){return '<li>'+x+'</li>';}).join('');
+    var bad=n.bad.map(function(x){return '<li>'+x+'</li>';}).join('');
+    var h=''+
+      '<h3 class="htitle">この地域の沿革と背景</h3>'+
+      '<p class="hnote">数字から読み取れる一般的な背景の解釈です（独自推計に基づく／特定の出来事の断定ではありません）。基幹産業の傾向：<b>'+n.industry+'</b>。</p>'+
+      '<div class="hcard"><div class="hh">人口の動き</div><p>'+n.popStory+'</p></div>'+
+      '<div class="hgrid">'+
+        '<div class="hcard good"><div class="hh">追い風になってきた理由</div><ul>'+good+'</ul></div>'+
+        '<div class="hcard bad"><div class="hh">重しになってきた理由</div><ul>'+bad+'</ul></div>'+
+      '</div>'+
+      '<div class="hcard care"><div class="hh">医療と介護は、どう変わってきたか</div><p>'+n.careStory+'</p></div>';
+    document.getElementById('history').innerHTML=h;
   }
 
   // ── 診療圏/介護圏ノート ──
@@ -191,7 +226,7 @@
     var el=document.getElementById('rings');
     var lvl = e.aging>=34 ? '全国平均を大きく上回る' : (e.aging>=29 ? '全国平均並み' : '全国平均を下回る');
     el.innerHTML='<b>診療圏 × 介護圏</b> ── 二次医療圏（入院を含む一般医療の完結単位／全国約335圏域）と日常生活圏域（概ね中学校区・30分でサービス到達）を重ねて捉える。'+
-      'この地域の高齢化率は'+e.aging.toFixed(1)+'%で<b>'+lvl+'</b>。人口10万対の一般診療所は'+e.per.clinicPer10k.toFixed(1)+'。'+
+      'この地域の高齢化率は'+e.aging.toFixed(1)+'%で<b>'+lvl+'</b>。一般診療所は住民'+MacroEngine.fmt(e.per.clinic)+'人あたり1施設。'+
       '医療機関・事業所が相対的に少ない地域ほど、圏内の競合は薄く、一施設あたりの担い手価値は高くなりやすい——都市の密度ではなく、圏の余白に張るという読み方ができる。';
   }
 

@@ -135,3 +135,32 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .topnav a.on{background:var(--gold);color:#fff}
 .topnav a.on:hover{background:var(--gold-deep);color:#fff}
 @media(max-width:640px){.topnav a{padding:6px 10px;font-size:.8rem}}
+
+/* data table */
+#dtable{margin-top:20px}
+.dtbl{width:100%;border-collapse:collapse;font-size:.9rem}
+.dtbl th,.dtbl td{padding:9px 12px;border-bottom:1px solid var(--rule);text-align:right}
+.dtbl th:first-child,.dtbl td:first-child{text-align:left}
+.dtbl th{font-family:var(--sans-jp);font-weight:700;color:var(--gold-deep);background:var(--gold-wash);font-size:.8rem}
+.dtbl td.num{font-family:var(--serif-en)}
+.dtbl td.pos{color:var(--gold-deep)}
+.dtbl td.neg{color:var(--ink-soft)}
+.dtbl tr.now td{background:var(--gold-wash);font-weight:700}
+
+/* history / 沿革 */
+.history{margin:26px 0}
+.history .htitle{font-family:var(--serif-jp);font-size:1.25rem;margin-bottom:6px}
+.history .hnote{font-size:.84rem;color:var(--ink-faint);margin-bottom:16px;line-height:1.7}
+.history .hnote b{color:var(--gold-deep)}
+.hcard{border:1px solid var(--rule);border-radius:12px;padding:18px 20px;margin-bottom:14px;background:var(--paper)}
+.hcard .hh{font-family:var(--serif-jp);font-weight:600;font-size:1rem;margin-bottom:8px;color:var(--ink)}
+.hcard p{font-size:.92rem;color:var(--ink-soft);line-height:1.85;margin:0}
+.hcard ul{margin:0;padding-left:1.1em}
+.hcard li{font-size:.9rem;color:var(--ink-soft);line-height:1.8;margin-bottom:4px}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hcard.good{border-left:3px solid var(--gold);border-radius:0 12px 12px 0}
+.hcard.good .hh{color:var(--gold-deep)}
+.hcard.bad{border-left:3px solid var(--ink-faint);border-radius:0 12px 12px 0}
+.hcard.bad .hh{color:var(--ink-soft)}
+.hcard.care{border-left:3px solid var(--gold-deep);border-radius:0 12px 12px 0;background:var(--gold-wash)}
+@media(max-width:680px){.hgrid{grid-template-columns:1fr}}

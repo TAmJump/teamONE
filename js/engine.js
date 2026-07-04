@@ -94,8 +94,8 @@
     // 医療機関総数（病院＋一般診療所＋歯科）
     const medTotal = facilities.hospital + facilities.clinic + facilities.dental;
 
-    // 人口10万対 指標（当該エリアの推計人口を分母に算出）
-    const per100k = (n) => pop > 0 ? +(n / pop * 100000).toFixed(1) : 0;
+    // 各エリアの実人口を分母にした「住民◯人あたり1施設」（10万対の固定分母は使わない）
+    const rpf = (n) => n > 0 ? Math.round(pop / n) : 0;
 
     return {
       yearFrac: yf,
@@ -104,11 +104,11 @@
       elderlyN, youthN, workingN, labor,
       facilities, kamoku, medTotal,
       per: {
-        clinicPer10k: per100k(facilities.clinic),
-        hospitalPer10k: per100k(facilities.hospital),
-        kaigoPer10k: per100k(facilities.kaigo),
-        pharmacyPer10k: per100k(facilities.pharmacy),
-        shafukuPer10k: per100k(facilities.shafuku),
+        clinic: rpf(facilities.clinic),
+        hospital: rpf(facilities.hospital),
+        kaigo: rpf(facilities.kaigo),
+        pharmacy: rpf(facilities.pharmacy),
+        shafuku: rpf(facilities.shafuku),
       },
     };
   }
@@ -132,11 +132,75 @@
   }
 
   function fmt(n) { return n.toLocaleString('ja-JP'); }
-  function fmtMan(n) { // 万人表記
+  function fmtMan(n) {
     if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '万';
     return fmt(n);
   }
 
-  global.MacroEngine = { estimateToday, trendSeries, yearFrac, fmt, fmtMan };
+  // 主要年次の数値表（人口千人・高齢化率）
+  function tableRows(region) {
+    var years = [2000, 2005, 2010, 2015, 2020];
+    var rows = [], prev = null;
+    years.forEach(function (y) {
+      var popK = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020));
+      var ag = +Math.min(50, Math.max(8, regionAging(region.aging, y))).toFixed(1);
+      var d = prev == null ? null : +(popK - prev).toFixed(0);
+      rows.push({ year: y, pop: popK, aging: ag, delta: d });
+      prev = popK;
+    });
+    var nowYf = yearFrac();
+    var popNow = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020));
+    var agNow = +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1);
+    rows.push({ year: '現在', pop: popNow, aging: agNow, delta: +(popNow - prev).toFixed(0), now: true });
+    return rows;
+  }
+
+  // 地方別の産業アーキタイプ（一般的傾向・解釈用）
+  var REGION_IND = {
+    '北海道': { base: '農業・酪農・水産・観光', good: '観光や食の産地としての強み、広い農地', bad: '一次産業の担い手不足、旧産炭地の縮小、冬季の雇用の細り' },
+    '東北': { base: '稲作・果樹・製造業', good: '食料生産の集積、製造業の立地', bad: '若年層の都市流出、工場再編、豪雪地の生活コスト' },
+    '関東': { base: '都市機能・商業・製造', good: '雇用と大学の集積、通勤圏の広がり', bad: '周縁部の空洞化、住居費の高さ' },
+    '中部': { base: '自動車など製造業・農業', good: 'ものづくりの集積が雇用を支える', bad: '製造業の景気変動、山間部の過疎' },
+    '近畿': { base: '都市・商業・工業', good: '都市圏の求心力、中小製造の厚み', bad: '内陸・北部の人口減、産業構造の転換' },
+    '中国': { base: '瀬戸内工業・農業・造船', good: '臨海工業と農水産の両輪', bad: '基幹産業の再編、中山間・離島の過疎' },
+    '四国': { base: '農業・水産・製造', good: '柑橘など特産、地場製造', bad: '人口流出と高齢化の先行、交通の不便' },
+    '九州': { base: '農業・畜産・半導体・観光', good: '近年の半導体・企業立地、観光と食', bad: '離島・山間部の過疎、地域間の偏り' },
+  };
+
+  // 数字から読み取る「沿革・背景」解釈（事実の断定ではなく推計からの解釈）
+  function narrative(region, e) {
+    var rows = tableRows(region);
+    var pop2000 = rows[0].pop, popNow = rows[rows.length - 1].pop;
+    var chg = pop2000 > 0 ? (popNow - pop2000) / pop2000 * 100 : 0;
+    var ind = REGION_IND[region.region] || REGION_IND['関東'];
+    var g = region.growth, aging = e.aging;
+
+    var popStory;
+    if (g <= -1.0) popStory = '2000年以降、人口はおよそ' + Math.abs(chg).toFixed(0) + '%減少。進学・就職に伴う若年層の流出と出生数の減少が続き、地域の担い手が薄くなってきた。';
+    else if (g <= -0.4) popStory = '人口はゆるやかに減少（約' + Math.abs(chg).toFixed(0) + '%）。転出と少子化が重なり、緩慢だが確かな縮小が進む。';
+    else if (g < 0.2) popStory = '人口はおおむね横ばい。大きな流出は抑えられているが、自然減が始まっている。';
+    else popStory = '人口は維持〜増加（約' + chg.toFixed(0) + '%）。雇用や都市機能の集積が流入を支えている。';
+
+    var good = [], bad = [];
+    good.push(ind.good + 'が地域の土台。');
+    if (g > 0.2) good.push('雇用や生活利便の集積で、人口の流入・定着が進んだ。');
+    if (aging < 27) good.push('高齢化は全国平均を下回り、現役層の比率が比較的厚い。');
+    if (region.pop2020 >= 300) good.push('一定の人口規模があり、医療・介護・商業の選択肢が保たれやすい。');
+
+    bad.push(ind.bad + '。');
+    if (g <= -0.6) bad.push('若年層の流出が続き、産業の後継者と福祉の担い手が同時に細っている。');
+    if (aging >= 34) bad.push('高齢化率が' + aging.toFixed(0) + '%に達し、支え手の減少が施設運営を圧迫しやすい。');
+    if (region.pop2020 < 30) bad.push('人口規模が小さく、一つの施設・店舗の撤退が地域全体に響く。');
+
+    var careStory;
+    var ag2000 = rows[0].aging;
+    if (aging >= 34) careStory = '高齢化率は' + ag2000 + '%（2000年）から' + aging.toFixed(0) + '%へ上昇。介護需要は急拡大した一方、生産年齢人口の減少で医療機関・介護事業所の維持そのものが課題になっている。訪問・通所を含めた広域での支え合いが要になる。';
+    else if (aging >= 29) careStory = '高齢化は' + ag2000 + '%→' + aging.toFixed(0) + '%と全国並みに進行。医療・介護の需要は着実に増え、担い手確保と事業所の持続が論点になってきた。';
+    else careStory = '高齢化率は全国平均を下回るものの、' + ag2000 + '%→' + aging.toFixed(0) + '%へ上昇。高齢者の絶対数は増えており、医療・介護の需要は今後さらに強まる。';
+
+    return { rows: rows, popStory: popStory, good: good, bad: bad, careStory: careStory, industry: ind.base };
+  }
+
+  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, yearFrac, fmt, fmtMan };
 
 })(typeof window !== 'undefined' ? window : globalThis);
