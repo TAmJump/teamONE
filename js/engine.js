@@ -97,12 +97,30 @@
     // 各エリアの実人口を分母にした「住民◯人あたり1施設」（10万対の固定分母は使わない）
     const rpf = (n) => n > 0 ? Math.round(pop / n) : 0;
 
+    // 充足率：全国平均の「1人（介護は高齢者1人）あたり供給量」を100%とした比
+    //  100%超＝全国平均より手厚い、100%未満＝全国平均より薄い
+    const nat = meta.national || {};
+    const natPop = (nat.pop2020 || 0) * 1000;
+    const natEld = natPop * (nat.aging2025 || NATL_2025) / 100;
+    const fillRate = (cnt, base, natCnt, natBase) => {
+      if (!cnt || !base || !natCnt || !natBase) return 0;
+      const loc = cnt / base, ntl = natCnt / natBase;
+      return ntl > 0 ? Math.round(loc / ntl * 100) : 0;
+    };
+    const fill = {
+      shafuku:  fillRate(facilities.shafuku,  pop,      nat.shafuku,  natPop),
+      kaigo:    fillRate(facilities.kaigo,     elderlyN, nat.kaigo,    natEld),
+      clinic:   fillRate(facilities.clinic,    pop,      nat.clinic,   natPop),
+      hospital: fillRate(facilities.hospital,  pop,      nat.hospital, natPop),
+      pharmacy: fillRate(facilities.pharmacy,  pop,      nat.pharmacy, natPop),
+    };
+
     return {
       yearFrac: yf,
       pop, popMale: Math.round(sx.male), popFemale: Math.round(sx.female),
       aging: +aging.toFixed(2), youth: +youth.toFixed(2), working: +working.toFixed(2),
       elderlyN, youthN, workingN, labor,
-      facilities, kamoku, medTotal,
+      facilities, kamoku, medTotal, fill,
       per: {
         clinic: rpf(facilities.clinic),
         hospital: rpf(facilities.hospital),
@@ -121,13 +139,13 @@
       const dt = y - 2020;
       const popK = region.pop2020 * Math.pow(1 + region.growth / 100, dt);
       let aging = Math.min(50, Math.max(8, regionAging(region.aging, y)));
-      pts.push({ year: y, pop: Math.round(popK), aging: +aging.toFixed(1) });
+      pts.push({ year: y, pop: Math.round(popK*1000), aging: +aging.toFixed(1) });
     }
     // 末尾に「現在」点
     const dt = nowYf - 2020;
     const popK = region.pop2020 * Math.pow(1 + region.growth / 100, dt);
     let agingNow = Math.min(50, Math.max(8, regionAging(region.aging, nowYf)));
-    pts.push({ year: +nowYf.toFixed(2), pop: Math.round(popK), aging: +agingNow.toFixed(1), now: true });
+    pts.push({ year: +nowYf.toFixed(2), pop: Math.round(popK*1000), aging: +agingNow.toFixed(1), now: true });
     return pts;
   }
 
@@ -137,22 +155,73 @@
     return fmt(n);
   }
 
-  // 主要年次の数値表（人口千人・高齢化率）
-  function tableRows(region) {
-    var years = [2000, 2005, 2010, 2015, 2020];
-    var rows = [], prev = null;
-    years.forEach(function (y) {
-      var popK = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020));
-      var ag = +Math.min(50, Math.max(8, regionAging(region.aging, y))).toFixed(1);
-      var d = prev == null ? null : +(popK - prev).toFixed(0);
-      rows.push({ year: y, pop: popK, aging: ag, delta: d });
-      prev = popK;
-    });
+  // 2000→現在 を隔年で。人口=実数(人)、増減=前回比(人)、背景=数字からの一般解釈（断定でない）
+  function tableRows(region, step) {
+    step = step || 2;
+    var popAt = function (y) { return Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, y - 2020) * 1000); };
+    var agAt  = function (y) { return +Math.min(50, Math.max(8, regionAging(region.aging, y))).toFixed(1); };
     var nowYf = yearFrac();
-    var popNow = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020));
-    var agNow = +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1);
-    rows.push({ year: '現在', pop: popNow, aging: agNow, delta: +(popNow - prev).toFixed(0), now: true });
+    var nowY  = Math.floor(nowYf);
+
+    // 対象年の配列（2000から隔年、現在は別途）
+    var years = [];
+    for (var y = 2000; y < nowY; y += step) years.push(y);
+    if (years[years.length - 1] !== 2020 && 2020 <= nowY) { /* 2020は主要年なので必ず含める */ }
+    if (years.indexOf(2020) === -1 && 2020 < nowY) years.push(2020);
+    years.sort(function (a, b) { return a - b; });
+
+    var rows = [], prev = null, prevAg = null;
+    years.forEach(function (yy) {
+      var pop = popAt(yy), ag = agAt(yy);
+      var d = prev == null ? null : pop - prev;
+      rows.push({ year: yy, pop: pop, aging: ag, delta: d, reason: reasonFor(yy, pop, prev, ag, prevAg, region) });
+      prev = pop; prevAg = ag;
+    });
+    // 現在
+    var popN = Math.round(region.pop2020 * Math.pow(1 + region.growth / 100, nowYf - 2020) * 1000);
+    var agN  = +Math.min(50, Math.max(8, regionAging(region.aging, nowYf))).toFixed(1);
+    rows.push({ year: '現在', pop: popN, aging: agN, delta: prev == null ? null : popN - prev, now: true,
+                reason: reasonFor('現在', popN, prev, agN, prevAg, region) });
     return rows;
+  }
+
+  // 数字からの一般的な背景解釈（独自推計・特定の出来事の断定ではない）
+  function reasonFor(year, pop, prev, ag, prevAg, region) {
+    if (prev == null) return '基準年（2000年）。以降はこの年を起点に推計。';
+    var dPop = pop - prev;
+    var dPct = prev > 0 ? dPop / prev * 100 : 0;         // 前回比（隔年）
+    var dAg  = prevAg == null ? 0 : (ag - prevAg);
+    var head;
+    if (dPct <= -1.6)      head = '人口が明確に減少';
+    else if (dPct <= -0.5) head = 'ゆるやかに人口減';
+    else if (dPct <  0.5)  head = 'ほぼ横ばい';
+    else if (dPct <  1.6)  head = 'ゆるやかに人口増';
+    else                   head = '人口が明確に増加';
+    var mag = (dPop === 0) ? '増減なし' : (dPop > 0 ? '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人増' : '約' + Math.abs(dPop).toLocaleString('ja-JP') + '人減');
+    var tail = '';
+    if (dAg >= 1.2) tail = '・高齢化が進行（+' + dAg.toFixed(1) + 'pt）';
+    else if (dAg <= -0.6) tail = '・高齢化率は低下';
+    return head + '（' + mag + '）' + tail + '。数字からの推計解釈。';
+  }
+
+  // 複数地域を1つに束ねる（全国／地方ブロック／東西 用）
+  //  list = pref または muni オブジェクト配列
+  function aggregate(list, name, regionLabel) {
+    var totPop = 0, wGrowth = 0, wAging = 0, wYouth = 0;
+    var fac = { shafuku:0, hospital:0, clinic:0, dental:0, pharmacy:0, kaigo:0, tokuyo:0, roken:0 };
+    list.forEach(function (r) {
+      var p = r.pop2020 || 0;
+      totPop += p; wGrowth += (r.growth || 0) * p; wAging += (r.aging || 0) * p; wYouth += (r.youth || 0) * p;
+      var f = r.facilities || {};
+      Object.keys(fac).forEach(function (k) { fac[k] += (f[k] || 0); });
+    });
+    var w = totPop > 0 ? totPop : 1;
+    return {
+      name: name, disp: name, level: 'agg', region: regionLabel || (list[0] && list[0].region) || '関東',
+      pop2020: +totPop.toFixed(1), growth: +(wGrowth / w).toFixed(3),
+      aging: +(wAging / w).toFixed(2), youth: +(wYouth / w).toFixed(2),
+      facilities: fac,
+    };
   }
 
   // 地方別の産業アーキタイプ（一般的傾向・解釈用）
@@ -201,6 +270,6 @@
     return { rows: rows, popStory: popStory, good: good, bad: bad, careStory: careStory, industry: ind.base };
   }
 
-  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, yearFrac, fmt, fmtMan };
+  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, aggregate, yearFrac, fmt, fmtMan };
 
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=8">
+<link rel="stylesheet" href="css/app.css?v=9">
 </head>
 <body>
 
@@ -33,13 +33,15 @@
   </section>
 
   <div class="selector">
-    <div class="fld"><label>都道府県（入力して検索）</label>
-      <input id="selPref" list="prefList" placeholder="例：北海道 ／ 東京都 ／ 高知県" autocomplete="off">
-      <datalist id="prefList"></datalist>
+    <div class="fld cbox">
+      <label>地域を選ぶ（全国・地方・都道府県 ／ 入力して検索・ひらがな可）</label>
+      <input id="selPref" placeholder="例：全国 ／ 関東 ／ ほっかいどう ／ 東京" autocomplete="off" spellcheck="false">
+      <div class="cbox-list" id="listPref" role="listbox"></div>
     </div>
-    <div class="fld"><label>市区町村（任意・入力して検索）</label>
-      <input id="selMuni" list="muniList" placeholder="都道府県を選ぶと候補が出ます" autocomplete="off">
-      <datalist id="muniList"></datalist>
+    <div class="fld cbox">
+      <label>市区町村（全域＋市区町村 ／ 入力して検索・ひらがな可）</label>
+      <input id="selMuni" placeholder="都道府県を選ぶと候補が出ます" autocomplete="off" spellcheck="false" disabled>
+      <div class="cbox-list" id="listMuni" role="listbox"></div>
     </div>
   </div>
 
@@ -58,7 +60,7 @@
 
       <div class="trend">
         <h3>人口と高齢化率の推移（2000 → 現在）</h3>
-        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（千人）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。</div>
+        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（人）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。</div>
         <div id="chart"></div>
         <div class="lg"><span><span class="dot" style="background:#2b2621"></span>人口</span><span><span class="dot" style="background:#a8432e"></span>高齢化率</span></div>
         <div id="dtable"></div>
@@ -76,14 +78,14 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js"></script>
+<script src="js/engine.js?v=9"></script>
 <script>
 (function(){
   'use strict';
   var DATA=null, META=null, cur=null;
 
   // ── データ読み込み ──
-  fetch('data/regions.json').then(function(r){return r.json();}).then(function(d){
+  fetch('data/regions.json?v=9').then(function(r){return r.json();}).then(function(d){
     DATA=d; META=d.meta;
     var cov=META.coverage||{}; 
     document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP')+'　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村を収録';
@@ -93,36 +95,88 @@
     document.getElementById('esttag').textContent='データ読込エラー';
   });
 
-  // ── セレクタ（検索式 datalist） ──
-  function initSelectors(){
-    var pl=document.getElementById('prefList'); pl.innerHTML='';
-    DATA.prefectures.forEach(function(p){ var o=document.createElement('option'); o.value=p.name; pl.appendChild(o); });
-    var selP=document.getElementById('selPref'), selM=document.getElementById('selMuni');
-    selP.addEventListener('input',function(){
-      var pref=this.value.trim();
-      if(DATA.prefectures.some(function(p){return p.name===pref;})){ fillMuni(pref); selM.value=''; onSelect(); }
-    });
-    selP.addEventListener('change', onSelect);
-    selM.addEventListener('input', onSelect);
-    selM.addEventListener('change', onSelect);
+  // ── セレクタ（カスタム・コンボボックス：かな検索／あいうえお順／地方ブロック／全域） ──
+  var BLOCKS = {
+    east: ['北海道','東北','関東','中部'],
+    west: ['近畿','中国','四国','九州'],
+  };
+  var curPref = null;   // 選択中の都道府県オブジェクト（市区町村候補の元）
+
+  var kataToHira = function(s){ return (s||'').replace(/[\u30a1-\u30f6]/g, function(c){ return String.fromCharCode(c.charCodeAt(0)-0x60); }); };
+  var norm = function(s){ return kataToHira(String(s||'').toLowerCase()).trim(); };
+  var gojuon = function(a,b){ return String(a.yomi||a.label).localeCompare(String(b.yomi||b.label),'ja'); };
+
+  function prefItems(){
+    // まとめ（全国・東西・地方）
+    var specials = [
+      {label:'全国', yomi:'ぜんこく', type:'all'},
+      {label:'東日本（北海道・東北・関東・中部）', yomi:'ひがしにほん', type:'block', key:'east'},
+      {label:'西日本（近畿・中国・四国・九州）', yomi:'にしにほん', type:'block', key:'west'},
+    ];
+    var regions = [
+      ['北海道','ほっかいどう'],['東北','とうほく'],['関東','かんとう'],['中部','ちゅうぶ'],
+      ['近畿','きんき'],['中国','ちゅうごく'],['四国','しこく'],['九州','きゅうしゅう']
+    ].map(function(r){ return {label:r[0]+'地方', yomi:r[1], type:'region', key:r[0], alias:(r[0]==='近畿'?'かんさい':'')}; });
+    var prefs = DATA.prefectures.map(function(p){ return {label:p.name, yomi:p.yomi||p.name, type:'pref', ref:p}; })
+                 .sort(gojuon);
+    return specials.concat(regions).concat(prefs);
   }
-  function fillMuni(pref){
-    var ml=document.getElementById('muniList'); ml.innerHTML='';
-    DATA.municipalities.filter(function(m){return m.pref===pref;})
-      .sort(function(a,b){return b.pop2020-a.pop2020;})
-      .forEach(function(m){ var o=document.createElement('option'); o.value=(m.disp||m.name); ml.appendChild(o); });
+  function muniItems(){
+    if(!curPref) return [];
+    var all = {label:'全域（'+curPref.name+'全体）', yomi:'ぜんいき', type:'zeniki'};
+    var ms = DATA.municipalities.filter(function(m){return m.pref===curPref.name;})
+             .map(function(m){ return {label:(m.disp||m.name), yomi:m.yomi||m.name, sub:m.name, type:'muni', ref:m}; })
+             .sort(gojuon);
+    return [all].concat(ms);
   }
-  function onSelect(){
-    var pref=document.getElementById('selPref').value.trim();
-    var muniTxt=document.getElementById('selMuni').value.trim();
-    if(!DATA.prefectures.some(function(p){return p.name===pref;})){ return; }
-    var region, prefLabel='', name;
-    if(muniTxt){
-      region=DATA.municipalities.find(function(m){return m.pref===pref&&(m.disp===muniTxt||m.name===muniTxt);});
-      if(region){ prefLabel=pref; name=(region.disp||region.name); }
+  function matches(it, q){
+    if(!q) return true;
+    return norm(it.label).indexOf(q)>=0 || norm(it.yomi).indexOf(q)>=0 || (it.alias && norm(it.alias).indexOf(q)>=0) || (it.sub && norm(it.sub).indexOf(q)>=0);
+  }
+
+  function bindCombo(inputId, listId, getItems, onPick){
+    var inp=document.getElementById(inputId), list=document.getElementById(listId);
+    function render(){
+      var q=norm(inp.value);
+      var items=getItems().filter(function(it){return matches(it,q);}).slice(0,400);
+      list.innerHTML='';
+      if(!items.length){ list.classList.remove('open'); return; }
+      items.forEach(function(it){
+        var row=document.createElement('div'); row.className='cbox-item'+(it.type==='zeniki'||it.type==='all'?' key':'');
+        row.textContent=it.label;
+        row.addEventListener('mousedown',function(ev){ ev.preventDefault(); inp.value=it.label; list.classList.remove('open'); onPick(it); });
+        list.appendChild(row);
+      });
+      list.classList.add('open');
     }
-    if(!region){ region=DATA.prefectures.find(function(p){return p.name===pref;}); name=region.name; prefLabel=''; }
-    if(region) renderArea(region, prefLabel, name);
+    inp.addEventListener('focus', render);
+    inp.addEventListener('input', render);
+    inp.addEventListener('blur', function(){ setTimeout(function(){ list.classList.remove('open'); }, 150); });
+    inp.addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ var first=list.querySelector('.cbox-item'); if(first){ e.preventDefault(); first.dispatchEvent(new MouseEvent('mousedown')); } }
+      if(e.key==='Escape'){ list.classList.remove('open'); }
+    });
+    return { render:render };
+  }
+
+  function initSelectors(){
+    var selM=document.getElementById('selMuni');
+    bindCombo('selPref','listPref', prefItems, function(it){
+      var region, name;
+      if(it.type==='pref'){ curPref=it.ref; region=it.ref; name=it.ref.name; selM.disabled=false; selM.value=''; }
+      else {
+        curPref=null; selM.disabled=true; selM.value='';
+        if(it.type==='all'){ region=MacroEngine.aggregate(DATA.prefectures,'全国','関東'); name='全国'; }
+        else if(it.type==='block'){ var set=BLOCKS[it.key]; region=MacroEngine.aggregate(DATA.prefectures.filter(function(p){return set.indexOf(p.region)>=0;}), it.label.split('（')[0], '関東'); name=it.label.split('（')[0]; }
+        else if(it.type==='region'){ region=MacroEngine.aggregate(DATA.prefectures.filter(function(p){return p.region===it.key;}), it.key+'地方', it.key); name=it.key+'地方'; }
+      }
+      if(region) renderArea(region, '', name);
+    });
+    bindCombo('selMuni','listMuni', muniItems, function(it){
+      if(!curPref) return;
+      if(it.type==='zeniki'){ renderArea(curPref, '', curPref.name); return; }
+      renderArea(it.ref, curPref.name, (it.ref.disp||it.ref.name));
+    });
   }
 
   // ── ティッカー（全国 現在推計） ──
@@ -159,6 +213,7 @@
     document.getElementById('asof').textContent='現在推計値 ／ '+new Date().toLocaleDateString('ja-JP')+' 時点';
 
     var mPct=(e.popMale/e.pop*100), fPct=100-mPct;
+    var fb=function(v){ var c=v>=100?'#7d6329':'#a8432e'; return '<span style="color:'+c+';font-weight:600">供給充足率 '+v+'%</span>'; };
     var cards=[
       {lbl:'総人口', big:MacroEngine.fmt(e.pop), unit:'人',
         html:'<div class="splitbar"><div class="m" style="width:'+mPct+'%"></div><div class="f" style="width:'+fPct+'%"></div></div>'+
@@ -167,11 +222,11 @@
         html:'<div class="age3"><div class="y" style="width:'+e.youth+'%"></div><div class="w" style="width:'+e.working+'%"></div><div class="e" style="width:'+e.aging+'%"></div></div>'+
              '<div class="age3-legend"><span><span class="dot" style="background:var(--gold);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>年少 '+e.youth.toFixed(1)+'%</span><span><span class="dot" style="background:var(--ink-faint);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>生産年齢 '+e.working.toFixed(1)+'%</span><span><span class="dot" style="background:var(--gold-deep);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>老年 '+e.aging.toFixed(1)+'%</span></div>'},
       {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
-      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人'},
-      {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)},
+      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人 ／ '+fb(e.fill.shafuku)+'（人口あたり・全国平均=100）'},
+      {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)+' ／ '+fb(e.fill.kaigo)+'（高齢者あたり・全国平均=100）'},
       {lbl:'医療機関', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)},
-      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店'},
-      {lbl:'医療アクセス（住民あたり）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所'},
+      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国平均=100）'},
+      {lbl:'医療アクセス（住民あたり）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所 ／ '+fb(e.fill.clinic)+'（診療所・全国平均=100）'},
     ];
     var wrap=document.getElementById('cards'); wrap.innerHTML='';
     cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
@@ -191,14 +246,15 @@
     countUp();
   }
 
-  // ── 数値表 ──
+  // ── 数値表（隔年・人・増減人・背景） ──
   function renderTable(region){
     var rows=MacroEngine.tableRows(region);
-    var h='<table class="dtbl"><thead><tr><th>年</th><th>総人口（千人）</th><th>増減</th><th>高齢化率</th></tr></thead><tbody>';
+    var note='<div class="dtbl-note">2000年から隔年で、実数（人）で表示。四捨五入なし（推計値の生の数字）。<b>増減</b>は「前回表示年からの人口差（人）」。<b>背景</b>は数字から読み取れる一般的な解釈であり、特定の出来事の断定ではありません（独自推計）。グラフの人口線がなめらかなのは、モデルが年 '+(region.growth<0?'約'+Math.abs(region.growth).toFixed(2)+'%の逓減':'約'+region.growth.toFixed(2)+'%の変化')+'で連続的に推移するためで、ある年に急変した記録ではありません。</div>';
+    var h=note+'<table class="dtbl"><thead><tr><th>年</th><th>総人口（人）</th><th>増減（人）</th><th>高齢化率</th><th class="rz">背景（数字からの推計解釈）</th></tr></thead><tbody>';
     rows.forEach(function(r){
       var d = r.delta==null ? '—' : (r.delta>0?'+':'')+MacroEngine.fmt(r.delta);
       var dc = r.delta==null?'':(r.delta<0?'neg':(r.delta>0?'pos':''));
-      h+='<tr'+(r.now?' class="now"':'')+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td></tr>';
+      h+='<tr'+(r.now?' class="now"':'')+'><td>'+r.year+'</td><td class="num">'+MacroEngine.fmt(r.pop)+'</td><td class="num '+dc+'">'+d+'</td><td class="num">'+r.aging.toFixed(1)+'%</td><td class="rz">'+(r.reason||'')+'</td></tr>';
     });
     h+='</tbody></table>';
     document.getElementById('dtable').innerHTML=h;
@@ -253,7 +309,7 @@
       '<path d="'+path(ages,YA)+'" fill="none" stroke="#a8432e" stroke-width="2.6"/>'+
       '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#2b2621"/>'+
       '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#a8432e"/>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmtMan(last.pop)+'人</text>'+
       '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#a8432e" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
       '</svg>';
     document.getElementById('chart').innerHTML=svg;

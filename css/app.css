@@ -168,3 +168,20 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 .hcard.bad .hh{color:var(--ink-soft)}
 .hcard.care{border-left:3px solid var(--gold-deep);border-radius:0 12px 12px 0;background:var(--gold-wash)}
 @media(max-width:680px){.hgrid{grid-template-columns:1fr}}
+
+/* custom combobox (かな検索セレクタ) */
+.selector .fld.cbox{position:relative}
+.cbox-list{position:absolute;left:0;right:0;top:100%;z-index:60;margin-top:4px;max-height:320px;overflow:auto;background:var(--paper);border:1px solid var(--gold);border-radius:8px;box-shadow:0 14px 40px rgba(27,26,23,.14);display:none}
+.cbox-list.open{display:block}
+.cbox-item{padding:9px 12px;font-family:var(--sans-jp);font-size:.9rem;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--paper-line)}
+.cbox-item:last-child{border-bottom:none}
+.cbox-item:hover{background:var(--gold-wash);color:var(--gold-deep)}
+.cbox-item.key{background:var(--gold-wash);font-weight:700;color:var(--gold-deep)}
+.selector input:disabled{opacity:.5;cursor:not-allowed;background:var(--paper-warm)}
+
+/* 数値表：背景列＋注記 */
+.dtbl-note{font-size:.8rem;color:var(--ink-soft);line-height:1.7;margin-bottom:12px;background:var(--gold-wash);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 6px 6px 0}
+.dtbl-note b{color:var(--gold-deep)}
+.dtbl th.rz,.dtbl td.rz{text-align:left}
+.dtbl td.rz{font-size:.82rem;color:var(--ink-soft);font-family:var(--sans-jp);line-height:1.55}
+@media(max-width:720px){.dtbl{font-size:.8rem}.dtbl td.rz{font-size:.72rem}}
