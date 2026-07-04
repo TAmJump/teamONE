@@ -141,12 +141,20 @@
     Object.keys(CARE_SHARE).forEach(function (k) { careLevels[k] = Math.round(careTotal * CARE_SHARE[k]); });
     const care = { total: careTotal, rate: CARE_RATE, levels: careLevels };
 
+    // 介護施設ベッド数（推計）＝特養×平均定員＋老健×平均定員（介護医療院は少数のため特養・老健で近似）
+    const AVG_TOKUYO = 75, AVG_ROKEN = 86;   // 全国平均定員（介護サービス施設・事業所調査ベースの概算）
+    const careBeds = Math.round(facilities.tokuyo * AVG_TOKUYO + facilities.roken * AVG_ROKEN);
+    const natCareBeds = (nat.tokuyo || 0) * AVG_TOKUYO + (nat.roken || 0) * AVG_ROKEN;
+    const natCareTotal = natEld * CARE_RATE;   // 全国の要介護等認定者（推計）
+    // 介護施設ベッド充足率：要介護等認定者1人あたりの施設ベッド数を全国平均=100で比較
+    fill.kaigoBed = fillRate(careBeds, careTotal, natCareBeds, natCareTotal);
+
     return {
       yearFrac: yf,
       pop, popMale: Math.round(sx.male), popFemale: Math.round(sx.female),
       aging: +aging.toFixed(2), youth: +youth.toFixed(2), working: +working.toFixed(2),
       elderlyN, youthN, workingN, labor,
-      facilities, kamoku, medTotal, fill, care,
+      facilities, kamoku, medTotal, fill, care, careBeds,
       per: {
         clinic: rpf(facilities.clinic),
         hospital: rpf(facilities.hospital),

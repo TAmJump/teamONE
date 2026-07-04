@@ -95,7 +95,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=17"></script>
+<script src="js/engine.js?v=18"></script>
 <script>
 (function(){
   'use strict';
@@ -303,7 +303,7 @@
              '<div class="age3-legend"><span><span class="dot" style="background:var(--gold);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>年少 '+e.youth.toFixed(1)+'%</span><span><span class="dot" style="background:var(--ink-faint);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>生産年齢 '+e.working.toFixed(1)+'%</span><span><span class="dot" style="background:var(--gold-deep);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>老年 '+e.aging.toFixed(1)+'%</span></div>'},
       {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
       {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人 ／ '+fb(e.fill.shafuku)+'（人口あたり・全国平均=100）'},
-      {lbl:'介護事業所', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'特養 '+MacroEngine.fmt(e.facilities.tokuyo)+' ／ 老健 '+MacroEngine.fmt(e.facilities.roken)+' ／ '+fb(e.fill.kaigo)+'（高齢者あたり・全国平均=100）'},
+      {lbl:'介護事業所（施設＋在宅の全サービス）', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'訪問介護・通所・居宅介護支援・福祉用具・訪問看護等を含む。うち施設系＝特養 '+MacroEngine.fmt(e.facilities.tokuyo)+'・老健 '+MacroEngine.fmt(e.facilities.roken)+' ／ 介護施設ベッド数（推計）約'+MacroEngine.fmtMan(e.careBeds)+'床 ／ '+fb(e.fill.kaigoBed)+'（施設ベッド数÷要介護等認定者・全国平均=100）'},
       {lbl:'医療機関（歯科含む）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 歯科 '+MacroEngine.fmt(e.facilities.dental)+'（医療法上は歯科診療所も医療機関）'},
       {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国平均=100）'},
       {lbl:'医療アクセス（住民あたり施設密度）', big:MacroEngine.fmt(e.per.clinic), unit:'人に診療所1', sub:'病院 '+MacroEngine.fmt(e.per.hospital)+'人に1 ／ 介護 '+MacroEngine.fmt(e.per.kaigo)+'人に1所 ／ '+fb(e.fill.clinic)+'（診療所・全国平均=100）'},
@@ -349,7 +349,7 @@
   // この指標の見方（分母・数値の限界）
   function renderIndicatorNote(){
     var el=document.getElementById('indicatorNote'); if(!el) return;
-    el.innerHTML='<b>この指標の見方</b>：数値は施設・法人の「数」と「人口あたり密度」の推計です。<b>供給充足率</b>は全国平均を100とした、人口（介護・要介護は高齢者）あたり供給量の比＝<b>密度の目安</b>で、医療・介護の<b>質・救急体制（一次/二次救急）・診療科の充実度</b>そのものではありません。 <b>社会福祉法人</b>は法人数（児童・障害福祉も担うため分母は総人口）。<b>特養・老健</b>は施設数で、特養は主に社会福祉法人、老健は主に医療法人が運営します。<b>医療機関</b>は医療法上、病院・一般診療所に加え歯科診療所も含みます。';
+    el.innerHTML='<b>この指標の見方</b>：数値は施設・法人の「数」と密度の推計です。 <b>社会福祉法人＝法人数</b>（entity。児童・障害福祉も担うため充足率の分母は総人口）。特養・老健は「施設」で、特養は主に社会福祉法人、老健は主に医療法人が運営します（法人と施設は別カウント）。 <b>介護事業所＝介護保険サービス事業所の総数</b>で、特養・老健などの施設系だけでなく、訪問介護・通所介護（デイ）・居宅介護支援（ケアマネ）・福祉用具・訪問看護などの在宅系も含みます。 <b>介護の供給充足率は「介護施設ベッド数（特養・老健の推計定員）÷要介護等認定者」を全国平均=100として比較</b>（事業所数ではなくベッド数ベース）。 <b>医療機関</b>は医療法上、病院・一般診療所に加え歯科診療所も含みます。 いずれも密度の目安であり、医療・介護の<b>質・救急体制（一次/二次救急）・診療科の充実度</b>そのものではありません。';
   }
 
   // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──
