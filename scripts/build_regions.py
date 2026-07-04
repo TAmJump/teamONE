@@ -1,225 +1,128 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build_regions.py
-TAmJ 地域マクロ推計 — アンカーデータ生成器
-公式統計のアンカー値（国勢調査2020 / 住基2025 / 医療施設調査2024 / WAM社福集計2024 ほか）
-から、全国・都道府県・主要市区町村の基礎データを組み立てる。
-実データ = 人口(2020国勢)・高齢化率(住基2025ベース)。
-推計 = 施設数（全国確定値を人口按分）・労働人口（生産年齢×労働力率）・2000年推移（成長率補外）。
-すべて「独自推計」として提示する前提。
+build_regions.py — TAmJ 地域マクロ推計（全国フル版）
+実測: 全1,741市区町村の総人口（国勢調査2020）と長期変化率（1980→2020）。
+推計: 高齢化率（県アンカー×人口規模×減少率）・施設数（全国確定値の人口按分）・現在値（日付補間）。
+出力: data/regions.json（series はエンジン側で算出するため保持しない＝軽量化）。
+データ源: data/source_pop_census.csv（keisukekondokk/female-population-japan, 国勢調査由来）
 """
-import json, datetime
+import json, csv, math, datetime, os, urllib.request
 
-# ── 全国アンカー（出典明記の確定値） ─────────────────────────
+SRC_LOCAL = os.path.join("data", "source_pop_census.csv")
+SRC_URL = "https://raw.githubusercontent.com/keisukekondokk/female-population-japan/main/data/csv_pop/population_census_panel_1980_2020_total_age20_39.csv"
+
 NATIONAL = {
-    "pop2020": 126146,          # 千人 国勢調査2020
-    "pop2024": 123802,          # 千人 人口推計2024
-    "aging2025": 29.4,          # % 高齢社会白書R7 / 住基
-    "youth2025": 10.9,          # % 15歳未満
-    "shafuku": 21086,           # 社会福祉法人 WAM 2024
-    "hospital": 8064,           # 病院 医療施設調査 2024.7
-    "clinic": 105000,           # 一般診療所 概数 2024
-    "dental": 67000,            # 歯科診療所 概数 2024
-    "pharmacy": 62000,          # 薬局 衛生行政報告例 概数
-    "kaigo": 230000,            # 介護事業所（主要サービス合算・推計）
-    "tokuyo": 8500,             # 特別養護老人ホーム 概数
-    "roken": 4300,              # 介護老人保健施設 概数
+    "pop2020": 126146, "pop2024": 123802,
+    "aging2025": 29.4, "youth2025": 10.9,
+    "shafuku": 21086, "hospital": 8064, "clinic": 105000,
+    "dental": 67000, "pharmacy": 62000, "kaigo": 230000,
+    "tokuyo": 8500, "roken": 4300,
 }
-
-# 診療科目別（標榜）シェア（一般診療所ベース・推計）
 SHINRYOU_KAMOKU = {
     "内科": 0.62, "小児科": 0.20, "外科": 0.13, "整形外科": 0.14,
     "皮膚科": 0.11, "眼科": 0.09, "耳鼻いんこう科": 0.07,
     "産婦人科": 0.05, "精神科": 0.06, "泌尿器科": 0.05,
     "リハビリテーション科": 0.12, "循環器内科": 0.10,
 }
+PREF_META = {
+ "北海道":("北海道",33.5),"青森県":("東北",35.0),"岩手県":("東北",35.0),"宮城県":("東北",29.0),
+ "秋田県":("東北",39.45),"山形県":("東北",35.0),"福島県":("東北",33.0),"茨城県":("関東",30.5),
+ "栃木県":("関東",29.8),"群馬県":("関東",30.5),"埼玉県":("関東",28.0),"千葉県":("関東",28.5),
+ "東京都":("関東",23.44),"神奈川県":("関東",26.30),"新潟県":("中部",33.5),"富山県":("中部",33.0),
+ "石川県":("中部",30.5),"福井県":("中部",31.5),"山梨県":("中部",31.5),"長野県":("中部",32.5),
+ "岐阜県":("中部",31.0),"静岡県":("中部",30.5),"愛知県":("中部",26.0),"三重県":("中部",30.5),
+ "滋賀県":("近畿",27.0),"京都府":("近畿",29.5),"大阪府":("近畿",28.0),"兵庫県":("近畿",29.5),
+ "奈良県":("近畿",32.0),"和歌山県":("近畿",34.0),"鳥取県":("中国",33.0),"島根県":("中国",35.0),
+ "岡山県":("中国",30.5),"広島県":("中国",29.5),"山口県":("中国",35.67),"徳島県":("四国",35.0),
+ "香川県":("四国",32.0),"愛媛県":("四国",33.5),"高知県":("四国",36.57),"福岡県":("九州",28.0),
+ "佐賀県":("九州",30.5),"長崎県":("九州",33.0),"熊本県":("九州",31.5),"大分県":("九州",33.5),
+ "宮崎県":("九州",32.5),"鹿児島県":("九州",32.5),"沖縄県":("九州",24.29),
+}
+PREF_YOUTH = {
+ "沖縄県":16.6,"滋賀県":13.2,"佐賀県":13.2,"愛知県":12.5,"熊本県":12.8,"宮崎県":13.0,
+ "鹿児島県":13.0,"福岡県":12.7,"広島県":12.3,"岡山県":12.1,"長野県":12.0,"岐阜県":12.0,
+ "福井県":12.2,"三重県":11.8,"長崎県":12.2,"大分県":11.8,"鳥取県":11.8,"島根県":11.9,
+ "静岡県":11.7,"兵庫県":11.7,"香川県":11.6,"石川県":11.6,"栃木県":11.5,"群馬県":11.3,
+ "茨城県":11.3,"神奈川県":11.4,"埼玉県":11.4,"山口県":11.3,"愛媛県":11.2,"千葉県":11.2,
+ "山梨県":11.2,"東京都":11.1,"大阪府":11.1,"宮城県":11.3,"和歌山県":11.0,"奈良県":11.0,
+ "福島県":11.0,"京都府":10.9,"富山県":10.7,"山形県":10.7,"岩手県":10.3,"北海道":10.2,
+ "新潟県":10.8,"徳島県":10.6,"高知県":10.5,"青森県":10.0,"秋田県":9.2,
+}
 
-# ── 都道府県アンカー ───────────────────────────────
-# [name, region, pop2020(千), aging2025(%), 年平均人口変化率(%/yr), youth(%)]
-PREF = [
- ["北海道","北海道",5224,33.5,-0.90,10.2],
- ["青森県","東北",1238,35.0,-1.30,10.0],
- ["岩手県","東北",1211,35.0,-1.15,10.3],
- ["宮城県","東北",2302,29.0,-0.45,11.3],
- ["秋田県","東北",960,39.45,-1.50,9.2],
- ["山形県","東北",1068,35.0,-1.15,10.7],
- ["福島県","東北",1833,33.0,-1.10,11.0],
- ["茨城県","関東",2867,30.5,-0.55,11.3],
- ["栃木県","関東",1933,29.8,-0.55,11.5],
- ["群馬県","関東",1939,30.5,-0.55,11.3],
- ["埼玉県","関東",7345,28.0,-0.05,11.4],
- ["千葉県","関東",6284,28.5,-0.10,11.2],
- ["東京都","関東",14048,23.44,0.30,11.1],
- ["神奈川県","関東",9237,26.30,0.05,11.4],
- ["新潟県","中部",2201,33.5,-1.05,10.8],
- ["富山県","中部",1035,33.0,-0.90,10.7],
- ["石川県","中部",1133,30.5,-0.55,11.6],
- ["福井県","中部",767,31.5,-0.80,12.2],
- ["山梨県","中部",810,31.5,-0.85,11.2],
- ["長野県","中部",2048,32.5,-0.75,12.0],
- ["岐阜県","中部",1979,31.0,-0.70,12.0],
- ["静岡県","中部",3633,30.5,-0.55,11.7],
- ["愛知県","中部",7542,26.0,-0.05,12.5],
- ["三重県","中部",1770,30.5,-0.65,11.8],
- ["滋賀県","近畿",1414,27.0,-0.15,13.2],
- ["京都府","近畿",2578,29.5,-0.45,10.9],
- ["大阪府","近畿",8838,28.0,-0.25,11.1],
- ["兵庫県","近畿",5465,29.5,-0.40,11.7],
- ["奈良県","近畿",1324,32.0,-0.75,11.0],
- ["和歌山県","近畿",923,34.0,-1.05,11.0],
- ["鳥取県","中国",553,33.0,-0.85,11.8],
- ["島根県","中国",671,35.0,-0.95,11.9],
- ["岡山県","中国",1888,30.5,-0.50,12.1],
- ["広島県","中国",2800,29.5,-0.45,12.3],
- ["山口県","中国",1342,35.67,-1.00,11.3],
- ["徳島県","四国",720,35.0,-1.05,10.6],
- ["香川県","四国",950,32.0,-0.75,11.6],
- ["愛媛県","四国",1335,33.5,-0.95,11.2],
- ["高知県","四国",692,36.57,-1.15,10.5],
- ["福岡県","九州",5135,28.0,-0.10,12.7],
- ["佐賀県","九州",811,30.5,-0.65,13.2],
- ["長崎県","九州",1312,33.0,-1.05,12.2],
- ["熊本県","九州",1738,31.5,-0.60,12.8],
- ["大分県","九州",1124,33.5,-0.85,11.8],
- ["宮崎県","九州",1070,32.5,-0.85,13.0],
- ["鹿児島県","九州",1588,32.5,-0.85,13.0],
- ["沖縄県","九州",1467,24.29,0.35,16.6],
-]
+def load_rows():
+    if not os.path.exists(SRC_LOCAL):
+        os.makedirs("data", exist_ok=True)
+        urllib.request.urlretrieve(SRC_URL, SRC_LOCAL)
+    rows = []
+    for r in csv.DictReader(open(SRC_LOCAL, encoding="utf-8")):
+        try:
+            p2020 = int(float(r["pop_total_2020"])); p1980 = int(float(r["pop_total_1980"]))
+        except (ValueError, KeyError):
+            continue
+        if p2020 <= 0: continue
+        toks = r["name_muni2020"].split()
+        pref = toks[0]; gun = toks[1] if len(toks)==3 else ""; name = toks[-1]
+        rows.append({"code": r["id_muni2020"], "pref": pref, "gun": gun,
+                     "name": name, "pop2020": p2020, "pop1980": p1980})
+    return rows
 
-# ── 主要市区町村アンカー（実 2020国勢人口・千人／都市＋地方の代表） ──
-# [name, pref, pop2020(千), agingOffset(対県+/-), growthOverride or None]
-MUNI = [
- # 政令指定都市・中核市（都市代表）
- ["札幌市","北海道",1973,-4.0,0.0],["旭川市","北海道",329,3.0,-1.2],["函館市","北海道",251,5.0,-1.5],
- ["青森市","青森県",275,0.0,-1.1],["八戸市","青森県",223,0.0,-1.0],
- ["盛岡市","岩手県",289,-3.0,-0.7],
- ["仙台市","宮城県",1097,-6.0,0.3],
- ["秋田市","秋田県",307,-3.0,-1.1],["横手市","秋田県",85,4.0,-1.7],
- ["山形市","山形県",247,-3.0,-0.8],
- ["福島市","福島県",283,-2.0,-0.9],["郡山市","福島県",327,-3.0,-0.7],["いわき市","福島県",332,-1.0,-1.0],
- ["水戸市","茨城県",270,-2.0,-0.3],
- ["宇都宮市","栃木県",519,-4.0,-0.2],
- ["前橋市","群馬県",332,-2.0,-0.5],["高崎市","群馬県",372,-2.0,-0.3],
- ["さいたま市","埼玉県",1324,-5.0,0.5],["川口市","埼玉県",594,-5.0,0.6],["秩父市","埼玉県",60,6.0,-1.4],
- ["千葉市","千葉県",975,-3.0,0.2],["船橋市","千葉県",642,-3.0,0.4],
- ["世田谷区","東京都",943,-2.0,0.6],["千代田区","東京都",67,-3.0,1.4],["八王子市","東京都",579,0.0,-0.1],
- ["横浜市","神奈川県",3777,-3.0,0.2],["川崎市","神奈川県",1538,-6.0,0.7],["相模原市","神奈川県",725,-1.0,0.0],
- ["新潟市","新潟県",789,-3.0,-0.5],
- ["富山市","富山県",413,-2.0,-0.6],
- ["金沢市","石川県",463,-3.0,-0.2],
- ["福井市","福井県",262,-2.0,-0.6],
- ["甲府市","山梨県",189,-1.0,-0.7],
- ["長野市","長野県",372,-1.0,-0.6],["松本市","長野県",241,-2.0,-0.4],
- ["岐阜市","岐阜県",402,-2.0,-0.5],
- ["静岡市","静岡県",693,-1.0,-0.6],["浜松市","静岡県",791,-2.0,-0.4],
- ["名古屋市","愛知県",2332,-3.0,0.2],["豊田市","愛知県",422,-4.0,-0.1],
- ["津市","三重県",274,-1.0,-0.6],
- ["大津市","滋賀県",344,-2.0,0.0],
- ["京都市","京都府",1464,-2.0,-0.3],
- ["大阪市","大阪府",2752,-2.0,0.1],["堺市","大阪府",826,-1.0,-0.2],["東大阪市","大阪府",493,0.0,-0.4],
- ["神戸市","兵庫県",1525,-1.0,-0.3],["姫路市","兵庫県",530,-1.0,-0.4],
- ["奈良市","奈良県",355,-1.0,-0.5],
- ["和歌山市","和歌山県",356,-2.0,-0.8],
- ["鳥取市","鳥取県",189,-1.0,-0.7],
- ["松江市","島根県",204,-2.0,-0.6],["浜田市","島根県",54,5.0,-1.4],
- ["岡山市","岡山県",725,-3.0,-0.1],["倉敷市","岡山県",475,-2.0,-0.2],
- ["広島市","広島県",1201,-3.0,-0.1],["福山市","広島県",461,-1.0,-0.4],
- ["山口市","山口県",194,-2.0,-0.6],["下関市","山口県",256,3.0,-1.2],
- ["徳島市","徳島県",252,-2.0,-0.8],
- ["高松市","香川県",417,-2.0,-0.4],
- ["松山市","愛媛県",511,-2.0,-0.5],
- ["高知市","高知県",326,-2.0,-0.8],
- ["福岡市","福岡県",1612,-6.0,0.8],["北九州市","福岡県",939,1.0,-0.7],["久留米市","福岡県",303,-1.0,-0.4],
- ["佐賀市","佐賀県",233,-1.0,-0.5],
- ["長崎市","長崎県",409,0.0,-1.1],
- ["熊本市","熊本県",739,-3.0,-0.1],
- ["大分市","大分県",475,-3.0,-0.3],
- ["宮崎市","宮崎県",401,-2.0,-0.4],
- ["鹿児島市","鹿児島県",593,-2.0,-0.4],
- ["那覇市","沖縄県",317,-1.0,0.2],
-]
+def cagr(a, b, yrs):
+    if a<=0 or b<=0: return 0.0
+    return (math.pow(b/a, 1.0/yrs)-1)*100.0
+
+def facilities_for(pop2020, natl_pop):
+    share = pop2020/(natl_pop*1000.0); f={}
+    for k in ["shafuku","hospital","clinic","dental","pharmacy","kaigo","tokuyo","roken"]:
+        f[k]=max(0, round(NATIONAL[k]*share))
+    for k in ["shafuku","hospital","clinic","dental","pharmacy","kaigo"]:
+        f[k]=max(1, f[k])
+    return f
+
+def muni_aging(pref_aging, pop2020, growth):
+    size_off=(math.log10(40000)-math.log10(max(500,pop2020)))*4.5
+    size_off=max(-4.5,min(11.0,size_off))
+    decl_off=max(-3.0,min(6.0,-growth*2.2))
+    return round(max(12.0,min(50.0, pref_aging+size_off+0.5*decl_off)),1)
 
 def build():
-    today = datetime.date.today().isoformat()
-    pref_index = {p[0]: p for p in PREF}
-    natl_pop = NATIONAL["pop2020"]
+    rows=load_rows(); natl_pop=NATIONAL["pop2020"]
+    pref_agg={}
+    for r in rows:
+        a=pref_agg.setdefault(r["pref"],{"pop2020":0,"pop1980":0})
+        a["pop2020"]+=r["pop2020"]; a["pop1980"]+=r["pop1980"]
+    prefectures=[]
+    for pref,meta in PREF_META.items():
+        region,aging=meta; agg=pref_agg.get(pref,{"pop2020":0,"pop1980":0})
+        prefectures.append({"name":pref,"region":region,"level":"pref","code":pref,
+            "pop2020":round(agg["pop2020"]/1000.0,1),"aging":aging,
+            "youth":PREF_YOUTH.get(pref,11.0),"growth":round(cagr(agg["pop1980"],agg["pop2020"],40),2),
+            "facilities":facilities_for(agg["pop2020"],natl_pop)})
+    municipalities=[]
+    for r in rows:
+        meta=PREF_META.get(r["pref"])
+        if not meta: continue
+        region,pref_aging=meta; growth=round(cagr(r["pop1980"],r["pop2020"],40),2)
+        aging=muni_aging(pref_aging,r["pop2020"],growth)
+        youth=round(max(6.0,min(18.0, PREF_YOUTH.get(r["pref"],11.0)-(aging-pref_aging)*0.18)),1)
+        disp=(r["gun"]+r["name"]) if r["gun"] else r["name"]
+        municipalities.append({"name":r["name"],"disp":disp,"pref":r["pref"],"region":region,
+            "level":"muni","code":r["code"],"pop2020":round(r["pop2020"]/1000.0,1),
+            "aging":aging,"youth":youth,"growth":growth,
+            "facilities":facilities_for(r["pop2020"],natl_pop)})
+    out={"meta":{"title":"TAmJ 地域マクロ推計","generated":datetime.date.today().isoformat(),
+        "coverage":{"prefectures":len(prefectures),"municipalities":len(municipalities)},
+        "note":"人口・長期変化率は国勢調査（実測）。高齢化率・施設数・現在値は独自推計（アンカー×補間×按分）。",
+        "sources":["総務省 国勢調査（1980・2020, 市区町村別総人口）",
+            "内閣府 高齢社会白書 令和7年版 / 総務省 住民基本台帳2025（高齢化率アンカー）",
+            "厚生労働省 医療施設(動態)調査2024（病院8,064）",
+            "WAM 社会福祉法人現況報告集約2024（21,086法人）",
+            "厚生労働省 介護サービス施設・事業所調査 / 衛生行政報告例",
+            "市区町村総人口: keisukekondokk/female-population-japan（国勢調査由来）"],
+        "national":NATIONAL,"kamoku":SHINRYOU_KAMOKU,"laborForceRate":0.82},
+        "prefectures":prefectures,"municipalities":municipalities}
+    json.dump(out,open("data/regions.json","w",encoding="utf-8"),ensure_ascii=False,separators=(",",":"))
+    print(f"prefectures={len(prefectures)} municipalities={len(municipalities)} size={os.path.getsize('data/regions.json')//1024}KB")
 
-    # 全国のアンカー年（推移の骨格）
-    def year_series(pop2020, growth, back_to=2000):
-        s = {}
-        for y in range(back_to, 2026):
-            s[y] = round(pop2020 * ((1+growth/100) ** (y-2020)), 1)
-        return s
-
-    prefectures = []
-    for name, region, pop2020, aging, growth, youth in PREF:
-        share = pop2020 / natl_pop
-        fac = {
-            "shafuku": round(NATIONAL["shafuku"]*share),
-            "hospital": round(NATIONAL["hospital"]*share),
-            "clinic": round(NATIONAL["clinic"]*share),
-            "dental": round(NATIONAL["dental"]*share),
-            "pharmacy": round(NATIONAL["pharmacy"]*share),
-            "kaigo": round(NATIONAL["kaigo"]*share),
-            "tokuyo": round(NATIONAL["tokuyo"]*share),
-            "roken": round(NATIONAL["roken"]*share),
-        }
-        prefectures.append({
-            "name": name, "region": region, "level": "pref",
-            "pop2020": pop2020, "aging": aging, "youth": youth,
-            "growth": growth,
-            "series": year_series(pop2020, growth),
-            "facilities": fac,
-        })
-
-    municipalities = []
-    for name, pref, pop2020, agingOff, grw in MUNI:
-        p = pref_index[pref]
-        aging = round(min(48, max(15, p[3] + agingOff)), 1)
-        youth = round(max(7, p[5] - agingOff*0.25), 1)
-        growth = grw if grw is not None else p[4]
-        share = pop2020 / natl_pop
-        fac = {
-            "shafuku": max(1, round(NATIONAL["shafuku"]*share)),
-            "hospital": max(1, round(NATIONAL["hospital"]*share)),
-            "clinic": max(1, round(NATIONAL["clinic"]*share)),
-            "dental": max(1, round(NATIONAL["dental"]*share)),
-            "pharmacy": max(1, round(NATIONAL["pharmacy"]*share)),
-            "kaigo": max(1, round(NATIONAL["kaigo"]*share)),
-            "tokuyo": max(0, round(NATIONAL["tokuyo"]*share)),
-            "roken": max(0, round(NATIONAL["roken"]*share)),
-        }
-        municipalities.append({
-            "name": name, "pref": pref, "region": p[1], "level": "muni",
-            "pop2020": pop2020, "aging": aging, "youth": youth,
-            "growth": growth,
-            "series": year_series(pop2020, growth),
-            "facilities": fac,
-        })
-
-    out = {
-        "meta": {
-            "title": "TAmJ 地域マクロ推計",
-            "generated": today,
-            "note": "人口・高齢化率は公式統計アンカーに基づく。施設数・労働人口・日次現在値は独自推計（アンカー×補間）。",
-            "sources": [
-                "総務省 国勢調査2020 / 人口推計 / 住民基本台帳2025",
-                "内閣府 高齢社会白書 令和7年版",
-                "厚生労働省 医療施設(動態)調査2024",
-                "WAM 社会福祉法人現況報告集約2024（21,086法人）",
-                "厚生労働省 介護サービス施設・事業所調査 / 衛生行政報告例",
-            ],
-            "national": NATIONAL,
-            "kamoku": SHINRYOU_KAMOKU,
-            "laborForceRate": 0.82,
-        },
-        "prefectures": prefectures,
-        "municipalities": municipalities,
-    }
-    with open("data/regions.json","w",encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, separators=(",",":"))
-    print(f"prefectures={len(prefectures)} municipalities={len(municipalities)} -> data/regions.json")
-
-if __name__ == "__main__":
+if __name__=="__main__":
     build()

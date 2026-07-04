@@ -29,7 +29,7 @@
   <section class="intro">
     <div class="eyebrow">Nationwide ・ Municipality-level ・ Updated daily</div>
     <h1>全国の「現在地」を、独自推計で。</h1>
-    <p class="mincho">国勢調査・住民基本台帳・医療施設調査・社会福祉法人集計——公式統計は数値が2〜3年前で止まる。ここでは、それらのアンカー値を<b>今日の日付へ日次で補間</b>し、市区町村単位の人口・年齢・労働人口・高齢化率・社福数・介護事業所数・医療機関数（診療科目別）・薬局数を、TAmJの<b>独自マクロ推計</b>として提示する。2000年からの推移とあわせて、現在地を読む。</p>
+    <p class="mincho">国勢調査・住民基本台帳・医療施設調査・社会福祉法人集計——公式統計は数値が2〜3年前で止まる。ここでは、それらのアンカー値を<b>今日の日付へ日次で補間</b>し、<b>全国すべての市区町村</b>の人口・年齢・労働人口・高齢化率・社福数・介護事業所数・医療機関数（診療科目別）・薬局数を、TAmJの<b>独自マクロ推計</b>として提示する。人口と長期変化率は国勢調査（実測）に基づき、2000年からの推移とあわせて現在地を読む。</p>
     <span class="est-tag" id="esttag">推計基準日：—</span>
   </section>
 
@@ -118,7 +118,8 @@
   // ── データ読み込み ──
   fetch('data/regions.json').then(function(r){return r.json();}).then(function(d){
     DATA=d; META=d.meta;
-    document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP');
+    var cov=META.coverage||{}; 
+    document.getElementById('esttag').textContent='推計基準日：'+ new Date().toLocaleDateString('ja-JP')+'　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村を収録';
     document.getElementById('sources').textContent='出典（アンカー）：'+ (META.sources||[]).join(' / ');
     initSelectors(); renderTicker(); renderNational();
   }).catch(function(e){
@@ -143,18 +144,20 @@
   }
   function fillMuni(pref){
     var sel=document.getElementById('selMuni'); sel.innerHTML='<option value="">県全体</option>';
-    DATA.municipalities.filter(function(m){return m.pref===pref;}).forEach(function(m){
-      var o=document.createElement('option'); o.value=m.name; o.textContent=m.name; sel.appendChild(o);
-    });
+    DATA.municipalities.filter(function(m){return m.pref===pref;})
+      .sort(function(a,b){return b.pop2020-a.pop2020;})
+      .forEach(function(m){
+        var o=document.createElement('option'); o.value=m.code; o.textContent=(m.disp||m.name); sel.appendChild(o);
+      });
   }
   function onSelect(){
     var pref=document.getElementById('selPref').value;
     var muni=document.getElementById('selMuni').value;
     if(!pref){ renderNational(); return; }
     var region;
-    if(muni){ region=DATA.municipalities.find(function(m){return m.pref===pref&&m.name===muni;}); }
+    if(muni){ region=DATA.municipalities.find(function(m){return m.code===muni;}); }
     else { region=DATA.prefectures.find(function(p){return p.name===pref;}); }
-    if(region) renderArea(region, muni?pref:'' , muni?region.name:region.name);
+    if(region) renderArea(region, muni?pref:'' , muni?(region.disp||region.name):region.name);
   }
 
   // ── ティッカー（全国 現在推計） ──
