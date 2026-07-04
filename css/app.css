@@ -219,3 +219,62 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 /* 指標の見方ノート */
 .note2small{font-size:.82rem;color:var(--ink-soft);line-height:1.85;background:var(--gold-wash);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0;margin:0 0 20px}
 .note2small b{color:var(--gold-deep)}
+
+/* ============================================================
+   投資家スクリーニング（スコアパネル・4軸・ゲージ・タブ）
+   ============================================================ */
+/* 投資機会スコア パネル */
+.scorepanel{display:grid;grid-template-columns:minmax(210px,260px) 1fr;gap:0;border:1px solid var(--ink);border-radius:14px;overflow:hidden;margin:22px 0 8px;background:var(--paper)}
+.sc-total{background:var(--ink);color:var(--paper-warm);padding:26px 24px;display:flex;flex-direction:column;justify-content:center}
+.sc-tlbl{font-family:var(--serif-en);font-size:.78rem;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.sc-tlbl span{display:block;font-style:italic;font-size:.66rem;color:rgba(250,248,244,.55);letter-spacing:.04em;margin-top:2px}
+.sc-big{font-family:var(--serif-en);font-weight:500;font-size:clamp(3.4rem,9vw,5rem);line-height:.95;color:#fff;margin:6px 0 2px}
+.sc-tier{font-family:var(--serif-jp);font-weight:600;font-size:1rem;line-height:1.4;margin-top:4px}
+.sc-formula{font-size:.7rem;color:rgba(250,248,244,.5);margin-top:12px;line-height:1.6}
+.sc-bars{padding:22px 24px;display:flex;flex-direction:column;gap:11px}
+.sc-bar{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:12px}
+.sc-k{font-size:.82rem;color:var(--ink)}
+.sc-k b{font-family:var(--serif-jp);font-weight:600}
+.sc-k span{font-family:var(--serif-en);color:var(--ink-faint);margin-left:5px;font-size:.78rem}
+.sc-tr{background:var(--paper-warm);height:14px;border-radius:7px;overflow:hidden;border:1px solid var(--paper-line)}
+.sc-fl{height:100%;border-radius:7px;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.sc-v{font-family:var(--serif-en);font-size:.95rem;font-weight:500;text-align:right;color:var(--ink)}
+.sc-note{grid-column:1/-1;font-size:.7rem;color:var(--ink-faint);margin:-4px 0 2px;line-height:1.4}
+.sc-read{grid-column:1/-1;margin-top:8px;padding-top:12px;border-top:1px solid var(--rule);font-family:var(--serif-jp);font-size:.9rem;color:var(--ink-soft);line-height:1.85}
+.sc-disc{display:block;font-family:var(--sans-jp);font-size:.72rem;color:var(--ink-faint);margin-top:8px;line-height:1.7}
+@media(max-width:680px){.scorepanel{grid-template-columns:1fr}.sc-total{padding:22px 20px}.sc-bar{grid-template-columns:96px 1fr 30px;gap:9px}.sc-k{font-size:.76rem}}
+
+/* 4軸セクション */
+.axis{margin:30px 0 4px}
+.axis-head{border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:4px;position:relative}
+.axis-head h3{font-family:var(--brush);font-size:1.2rem;display:inline;line-height:1.5}
+.axis-tag{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-family:var(--serif-en);font-size:.82rem;font-weight:600;margin-right:10px;vertical-align:2px}
+.axis-cap{font-size:.82rem;color:var(--ink-faint);line-height:1.7;margin-top:8px}
+.axis-cap b{color:var(--gold-deep)}
+.axis.bg{margin-top:36px;padding-top:8px}
+.axis.bg .axis-head h3{font-size:1.1rem;color:var(--ink-soft)}
+
+/* カード内 スコアゲージ */
+.gg{display:flex;align-items:center;gap:10px;margin:12px 0 4px}
+.gg-tr{flex:1;background:var(--paper-warm);height:14px;border-radius:7px;overflow:hidden;border:1px solid var(--paper-line)}
+.gg-fl{height:100%;border-radius:7px}
+.gg-vl{font-family:var(--serif-en);font-size:.9rem;color:var(--ink);min-width:26px;text-align:right}
+/* 基幹産業テキスト（数字の代わり） */
+.card .bigtxt{font-family:var(--brush);font-size:clamp(1.15rem,3vw,1.5rem);color:var(--ink);line-height:1.35;margin:2px 0}
+
+/* データ待ちバッジ */
+.wait{display:inline-block;font-family:var(--sans-jp);font-size:.68rem;font-weight:700;letter-spacing:.04em;color:var(--coral-deep);background:var(--coral-wash);border:1px solid var(--coral);border-radius:20px;padding:1px 9px;vertical-align:1px}
+
+/* ランキング：タブ・絞り込み・スコアセル */
+.rank-tabs{display:flex;gap:8px;margin:8px 0 14px}
+.rtab{font-family:var(--sans-jp);font-size:.86rem;padding:9px 18px;border:1px solid var(--rule);background:var(--paper);color:var(--ink-soft);border-radius:22px;cursor:pointer;transition:.2s}
+.rtab:hover{background:var(--gold-wash);color:var(--gold-deep)}
+.rtab.on{background:var(--ink);color:var(--paper-warm);border-color:var(--ink)}
+.rank-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-bottom:12px}
+.rank-ctl label{font-size:.78rem;color:var(--gold-deep);font-family:var(--serif-en);letter-spacing:.04em;display:flex;flex-direction:column;gap:5px}
+.rank-ctl select{font-family:var(--sans-jp);font-size:.9rem;padding:8px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);cursor:pointer}
+.rank-ctl select:focus{outline:none;border-color:var(--gold)}
+.rank-count{font-family:var(--serif-jp);font-size:.82rem;color:var(--ink-soft);align-self:flex-end;padding-bottom:8px}
+.rtbl b.scv{font-family:var(--serif-en);font-weight:600;font-size:.98rem;color:var(--coral-deep)}
+.rtbl th{vertical-align:bottom}
+@media(max-width:640px){.rank-ctl{gap:12px}.rank-count{flex-basis:100%;align-self:flex-start;padding-bottom:0}}

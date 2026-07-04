@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=16">
+<link rel="stylesheet" href="css/app.css?v=17">
 </head>
 <body>
 
@@ -26,9 +26,9 @@
 
 <div class="wrap">
   <section class="intro">
-    <div class="eyebrow">Nationwide ・ Municipality-level ・ Updated daily</div>
-    <h1>全国の「現在地」を、独自推計で。</h1>
-    <p class="mincho">国勢調査・住民基本台帳・医療施設調査・社会福祉法人集計——公式統計は数値が2〜3年前で止まる。ここでは、それらのアンカー値を<b>今日の日付へ日次で補間</b>し、<b>全国すべての市区町村</b>の人口・年齢・労働人口・高齢化率・社福数・介護事業所数・医療機関数（診療科目別）・薬局数を、TAmJの<b>独自マクロ推計</b>として提示する。人口と長期変化率は国勢調査（実測）に基づき、2000年からの推移とあわせて現在地を読む。</p>
+    <div class="eyebrow">Investor Screening ・ Nationwide 1,741 ・ Updated monthly</div>
+    <h1>どこから入るか、を採点する。</h1>
+    <p class="mincho">これは密度を眺める閲覧ツールではなく、<b>投資家が入る先を絞り込むスクリーニング</b>です。team ONE は、分散した<b>社会福祉法人を連携推進法人で束ね・承継</b>し、投資は現場へ直接ではなく<b>SPC／ファンドの"器"を経て</b>施設・DX・物流という地域資産へ向ける構想。介護の空床は原因でなく結果——<b>雇用と若年層の流出</b>が原因であり、<b>地域の基幹産業（農・水産・観光）の再生</b>から介護を救う。だから全国すべての市区町村を、<b>需要 × 供給空白 × 承継母数 × 産業再生余地</b>の4軸で採点し、<b>投資機会スコア</b>として一枚で見せます。数値は公式アンカーを今日へ補間した<b>独自推計・仮説モデル</b>で、確定値ではありません。</p>
     <span class="est-tag" id="esttag">推計基準日：—</span>
   </section>
 
@@ -51,41 +51,104 @@
       <span class="pref" id="areaPref"></span>
       <span class="asof" id="asof"></span>
     </div>
-      <div class="cards" id="cards"></div>
 
-      <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
-        <div class="lbl">要介護・要支援 認定者数（介護度別・推計）</div>
-        <div id="carelvl"></div>
-      </div>
+      <!-- ① 投資機会スコア -->
+      <div class="scorepanel" id="scorePanel"></div>
+
+      <!-- ② 需要（逃げない需要） -->
+      <section class="axis" id="ax-demand">
+        <div class="axis-head"><span class="axis-tag">1</span><h3>需要 ── 逃げない需要の規模と持続</h3>
+          <p class="axis-cap">高齢者数・要介護認定者・2040年までの伸び。へき地は代替が無く、需要は行政（介護保険）が保証する。景気に左右されにくい。</p></div>
+        <div class="cards" id="cards-demand"></div>
+        <div class="card wide" style="border:1px solid var(--rule);margin:16px 0 0">
+          <div class="lbl">要介護・要支援 認定者数（介護度別・推計）</div>
+          <div id="carelvl"></div>
+        </div>
+      </section>
+
+      <!-- ③ 供給空白（参入余地） -->
+      <section class="axis" id="ax-supply">
+        <div class="axis-head"><span class="axis-tag">2</span><h3>供給空白 ── 薄いほど参入余地</h3>
+          <p class="axis-cap">病床・在宅（在支診／訪問看護）・救急・無医地区。全国平均より薄い所ほど競合が無く、連携で価値が出る。<b>病床・在宅は推計、救急・無医地区は公式データ待ち</b>（骨組みを先行し、市区町村別の実データが入り次第 差し替え）。</p></div>
+        <div class="cards" id="cards-supply"></div>
+        <div class="note2small" id="supplyNote"></div>
+      </section>
+
+      <!-- ④ 承継母数（ロールアップ） -->
+      <section class="axis" id="ax-roll">
+        <div class="axis-head"><span class="axis-tag">3</span><h3>承継母数 ── 束ねる相手はどれだけ居るか</h3>
+          <p class="axis-cap">社会福祉法人の数・規模・分散度。小規模で後継難な法人ほど、連携推進法人の承継候補になりやすい。細分化している地域ほど束ねる母数が厚い。</p></div>
+        <div class="cards" id="cards-roll"></div>
+      </section>
+
+      <!-- ⑤ 産業再生余地 -->
+      <section class="axis" id="ax-industry">
+        <div class="axis-head"><span class="axis-tag">4</span><h3>産業再生余地 ── 介護の外から介護を救う</h3>
+          <p class="axis-cap">その地域で一番稼げる基幹産業（農・酪農・水産・観光・林業）を承継し、通年雇用をつくる（冬の除雪 × 介護送迎・配送 等）。担い手が戻れば医療・介護も続く。<b>産出額など実額の市区町村別はデータ待ち</b>——ここは素地の代理指標。</p></div>
+        <div class="cards" id="cards-industry"></div>
+      </section>
 
       <div class="note2small" id="indicatorNote"></div>
 
-      <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
-        <div class="lbl">診療科目別 診療所数（標榜・推計）</div>
-        <div class="barlist" id="kamoku"></div>
-      </div>
+      <!-- 背景（現在地を読むための材料） -->
+      <section class="axis bg" id="ax-bg">
+        <div class="axis-head"><h3>地域の背景（現在地を読む材料）</h3>
+          <p class="axis-cap">上のスコアの土台になる、人口・高齢化の推移と沿革。診療科目の構成もここに。</p></div>
 
-      <div class="trend">
-        <h3>人口と高齢化率の推移（2000 → 現在 → 2040 予測）</h3>
-        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（2000=100の指数）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。<b>実線＝実測〜現在／破線＝現在以降の予測（〜2040）</b>。予測は「何も対策しない場合」の趨勢延長。</div>
-        <div id="chart"></div>
-        <div class="lg"><span><span class="dot" style="background:#2b2621"></span>人口</span><span><span class="dot" style="background:#a8432e"></span>高齢化率</span><span style="color:var(--ink-faint)">— 実線=実測／- - 破線=予測</span></div>
-        <div id="dtable"></div>
-      </div>
+        <div class="card wide" style="border:1px solid var(--rule);margin:0 0 20px">
+          <div class="lbl">診療科目別 診療所数（標榜・推計）</div>
+          <div class="barlist" id="kamoku"></div>
+        </div>
 
-      <div class="history" id="history"></div>
+        <div class="trend">
+          <h3>人口と高齢化率の推移（2000 → 現在 → 2040 予測）</h3>
+          <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（2000=100の指数）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。<b>実線＝実測〜現在／破線＝現在以降の予測（〜2040）</b>。予測は「何も対策しない場合」の趨勢延長。</div>
+          <div id="chart"></div>
+          <div class="lg"><span><span class="dot" style="background:#2b2621"></span>人口</span><span><span class="dot" style="background:#a8432e"></span>高齢化率</span><span style="color:var(--ink-faint)">— 実線=実測／- - 破線=予測</span></div>
+          <div id="dtable"></div>
+        </div>
 
-      <div class="note" id="rings"></div>
+        <div class="history" id="history"></div>
+        <div class="note" id="rings"></div>
+      </section>
   </div>
 </div>
 
 <div class="wrap">
   <section class="ranking" id="ranking">
     <div class="rank-head">
-      <h2>都道府県ランキング（2000 → 現在）</h2>
-      <p class="cap">人口・高齢化率・労働力は<b>独自推計</b>（今日時点）。<b>県内総生産＝内閣府「県民経済計算」2019年度・名目（兆円）</b>。<b>外国人労働者数＝厚労省「外国人雇用状況の届出状況」令和5年(2023)10月末（人）</b>、外国人比率は労働人口に対する割合。1行目は<b>全国合計</b>。人口増減率は長期トレンド推計で、順位の傾向は実態とおおむね一致しますが%の水準は都市部でやや大きめ（実測の2000国勢調査値は次版）。<b>列見出しクリック</b>で並び替え。<span style="color:var(--gold-deep);font-weight:600">（横に項目が続きます→スクロール可）</span></p>
+      <h2>投資機会スクリーニング・ランキング</h2>
+      <p class="cap">4軸（<b>需要 × 供給空白 × 承継母数 × 産業再生余地</b>）の幾何平均で採点した<b>投資機会スコア（独自推計・仮説モデル）</b>。高いほど「先に入る価値」がある候補。<b>市区町村</b>タブは全国1,741を対象（都道府県で絞り込み・上位を表示）。<b>列見出しクリック</b>で並び替え。<span style="color:var(--gold-deep);font-weight:600">（横に項目が続きます→スクロール可）</span></p>
     </div>
-    <div class="rank-wrap"><table class="rtbl" id="rtbl"></table></div>
+
+    <div class="rank-tabs">
+      <button class="rtab on" data-tab="muni">市区町村スクリーニング</button>
+      <button class="rtab" data-tab="pref">都道府県</button>
+    </div>
+
+    <div id="tab-muni">
+      <div class="rank-ctl">
+        <label>都道府県で絞り込み
+          <select id="rankPref"><option value="">全国（全市区町村）</option></select>
+        </label>
+        <label>表示件数
+          <select id="rankTop">
+            <option value="60">上位60</option>
+            <option value="120">上位120</option>
+            <option value="300">上位300</option>
+            <option value="0">全件</option>
+          </select>
+        </label>
+        <span class="rank-count" id="rankCount"></span>
+      </div>
+      <div class="rank-wrap"><table class="rtbl" id="mtbl"></table></div>
+      <p class="cap" style="margin-top:10px">スコアの内訳＝<b>需要D</b>（高齢化率・2040持続・要介護規模）／<b>供給空白S</b>（病床・介護ベッド・診療所の充足が全国比で薄いほど高／無医地区リスク代理）／<b>承継母数R</b>（社福の分散度・小規模・後継難）／<b>産業再生余地I</b>（基幹産業の素地・過疎度・担い手流出）。各0〜100、いずれも独自推計で断定ではありません。救急告示・無医地区等調査・産出額の市区町村別実データはデータ待ちです。</p>
+    </div>
+
+    <div id="tab-pref" hidden>
+      <p class="cap" style="margin-bottom:12px">人口・高齢化率・労働力は<b>独自推計</b>（今日時点）。<b>投資機会スコア</b>は上記4軸の幾何平均（仮説モデル）。<b>県内総生産＝内閣府「県民経済計算」2019年度・名目（兆円）</b>。<b>外国人労働者数＝厚労省「外国人雇用状況の届出状況」令和5年(2023)10月末（人）</b>。1行目は<b>全国合計</b>。人口増減率は長期トレンド推計で水準は都市部でやや大きめ。<b>列見出しクリック</b>で並び替え。</p>
+      <div class="rank-wrap"><table class="rtbl" id="rtbl"></table></div>
+    </div>
   </section>
 </div>
 
@@ -95,7 +158,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=19"></script>
+<script src="js/engine.js?v=20"></script>
 <script>
 (function(){
   'use strict';
@@ -107,7 +170,7 @@
     var cov=META.coverage||{}; 
     var _u=new Date();document.getElementById('esttag').textContent='更新日 '+_u.getFullYear()+'年'+(_u.getMonth()+1)+'月'+_u.getDate()+'日（毎月更新）　／　全国 '+(cov.prefectures||47)+'都道府県・'+MacroEngine.fmt(cov.municipalities||0)+'市区町村・2000〜2040年を収録';
     document.getElementById('sources').textContent='出典（アンカー）：'+ (META.sources||[]).join(' / ');
-    initSelectors(); renderTicker(); renderNational(); renderRanking();
+    initSelectors(); renderTicker(); renderNational(); renderRanking(); initRankControls();
     window.addEventListener('resize', fitBig);
     if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fitBig); }
   }).catch(function(e){
@@ -230,26 +293,34 @@
   var PREF_GDP={'北海道':20.46,'青森県':4.53,'岩手県':4.85,'宮城県':9.83,'秋田県':3.62,'山形県':4.34,'福島県':7.99,'茨城県':14.09,'栃木県':9.26,'群馬県':9.31,'埼玉県':23.64,'千葉県':21.28,'東京都':115.68,'神奈川県':35.21,'新潟県':9.19,'富山県':4.91,'石川県':4.78,'福井県':3.69,'山梨県':3.57,'長野県':8.45,'岐阜県':7.94,'静岡県':17.87,'愛知県':40.91,'三重県':8.09,'滋賀県':6.92,'京都府':10.77,'大阪府':41.19,'兵庫県':22.20,'奈良県':3.93,'和歌山県':3.74,'鳥取県':1.89,'島根県':2.69,'岡山県':7.84,'広島県':11.97,'山口県':6.35,'徳島県':3.22,'香川県':4.01,'愛媛県':5.15,'高知県':2.46,'福岡県':19.94,'佐賀県':3.22,'長崎県':4.79,'熊本県':6.36,'大分県':4.53,'宮崎県':3.70,'鹿児島県':5.77,'沖縄県':4.63};
   // 外国人労働者数（人）：厚労省「外国人雇用状況の届出状況」令和5年(2023)10月末・別表2
   var PREF_FW={'北海道':35439,'青森県':5584,'岩手県':7082,'宮城県':16586,'秋田県':3161,'山形県':5743,'福島県':11987,'茨城県':54875,'栃木県':32728,'群馬県':50324,'埼玉県':103515,'千葉県':78854,'東京都':542992,'神奈川県':119466,'新潟県':12462,'富山県':13427,'石川県':13068,'福井県':11101,'山梨県':11227,'長野県':24893,'岐阜県':40028,'静岡県':74859,'愛知県':210159,'三重県':33753,'滋賀県':24791,'京都府':28506,'大阪府':146384,'兵庫県':57375,'奈良県':8447,'和歌山県':4682,'鳥取県':3526,'島根県':4978,'岡山県':24052,'広島県':44093,'山口県':10931,'徳島県':5656,'香川県':12302,'愛媛県':12476,'高知県':4510,'福岡県':64990,'佐賀県':7350,'長崎県':8663,'熊本県':18226,'大分県':9982,'宮崎県':7021,'鹿児島県':12015,'沖縄県':14406};
-  var RANK_ROWS=null, NATL_ROW=null, rankSort={key:'chg',dir:-1};
-  function mkRow(name,e,pop2000,gdp,fw){
+  var RANK_ROWS=null, NATL_ROW=null, rankSort={key:'score',dir:-1};
+  function mkRow(name,e,pop2000,gdp,fw,region){
     var chg=pop2000>0?(e.pop-pop2000)/pop2000*100:0;
-    return { name:name, pop:e.pop, chg:chg, aging:e.aging, working:e.working, labor:e.labor, gdp:gdp, fw:fw, fwr:e.labor>0?fw/e.labor*100:0 };
+    var iv=region?MacroEngine.investScore(region,e,META):null;
+    return { name:name, pop:e.pop, chg:chg, aging:e.aging, working:e.working, labor:e.labor, gdp:gdp, fw:fw, fwr:e.labor>0?fw/e.labor*100:0,
+             score:iv?iv.total:0, D:iv?iv.D:0, S:iv?iv.S:0, R:iv?iv.R:0, I:iv?iv.I:0 };
   }
   function buildRankRows(){
     // 全国合計行
     var natl=MacroEngine.aggregate(DATA.prefectures,'全国','関東'); natl.popSeries=MacroEngine.NATIONAL_POP;
     var ne=MacroEngine.estimateToday(natl,META);
     var gSum=0,fSum=0; DATA.prefectures.forEach(function(p){ gSum+=PREF_GDP[p.name]||0; fSum+=PREF_FW[p.name]||0; });
-    NATL_ROW=mkRow('全国',ne,MacroEngine.regionPop(natl,2000),+gSum.toFixed(2),fSum);
+    NATL_ROW=mkRow('全国',ne,MacroEngine.regionPop(natl,2000),+gSum.toFixed(2),fSum,natl);
     return DATA.prefectures.map(function(p){
       var e=MacroEngine.estimateToday(p,META);
-      return mkRow(p.name,e,MacroEngine.regionPop(p,2000),PREF_GDP[p.name]||0,PREF_FW[p.name]||0);
+      return mkRow(p.name,e,MacroEngine.regionPop(p,2000),PREF_GDP[p.name]||0,PREF_FW[p.name]||0,p);
     });
   }
   function renderRanking(){
     if(!RANK_ROWS) RANK_ROWS=buildRankRows();
+    var scoreCell=function(v){return '<b class="scv">'+v+'</b>';};
     var cols=[
       {key:'name',  label:'都道府県', num:false},
+      {key:'score', label:'投資機会<br>スコア', num:true, fmt:scoreCell},
+      {key:'D',     label:'需要<br>D', num:true, fmt:function(v){return v;}},
+      {key:'S',     label:'供給空白<br>S', num:true, fmt:function(v){return v;}},
+      {key:'R',     label:'承継母数<br>R', num:true, fmt:function(v){return v;}},
+      {key:'I',     label:'産業再生<br>I', num:true, fmt:function(v){return v;}},
       {key:'pop',   label:'現在人口（人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
       {key:'chg',   label:'人口増減率<br>2000→現在', num:true, fmt:function(v){return (v>0?'+':'')+v.toFixed(1)+'%';}, cls:function(v){return v<0?'neg':'pos';}},
       {key:'aging', label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
@@ -284,6 +355,78 @@
     });});
   }
 
+  // ── 市区町村スクリーニング・ランキング ──
+  var MUNI_ROWS=null, muniSort={key:'score',dir:-1};
+  function buildMuniRows(){
+    return DATA.municipalities.map(function(m){
+      var e=MacroEngine.estimateToday(m,META);
+      var iv=MacroEngine.investScore(m,e,META);
+      return { name:(m.disp||m.name), pref:m.pref, score:iv.total, D:iv.D, S:iv.S, R:iv.R, I:iv.I,
+               pop:e.pop, aging:e.aging, care:e.care.total, sha:e.facilities.shafuku };
+    });
+  }
+  function renderMuniRank(){
+    if(!MUNI_ROWS) MUNI_ROWS=buildMuniRows();
+    var prefSel=document.getElementById('rankPref').value;
+    var topN=parseInt(document.getElementById('rankTop').value,10);
+    var cols=[
+      {key:'name', label:'市区町村', num:false},
+      {key:'pref', label:'都道府県', num:false},
+      {key:'score',label:'投資機会<br>スコア', num:true, fmt:function(v){return '<b class="scv">'+v+'</b>';}},
+      {key:'D',    label:'需要<br>D', num:true, fmt:function(v){return v;}},
+      {key:'S',    label:'供給空白<br>S', num:true, fmt:function(v){return v;}},
+      {key:'R',    label:'承継母数<br>R', num:true, fmt:function(v){return v;}},
+      {key:'I',    label:'産業再生<br>I', num:true, fmt:function(v){return v;}},
+      {key:'aging',label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
+      {key:'care', label:'要介護等<br>認定者（推計）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'sha',  label:'社福<br>（法人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'pop',  label:'現在人口<br>（人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}}
+    ];
+    var rows=MUNI_ROWS.filter(function(r){return !prefSel || r.pref===prefSel;});
+    var total=rows.length;
+    rows=rows.slice().sort(function(a,b){
+      var k=muniSort.key;
+      if(k==='name'||k==='pref') return String(a[k]).localeCompare(String(b[k]),'ja')*muniSort.dir;
+      return (a[k]-b[k])*muniSort.dir;
+    });
+    if(topN>0) rows=rows.slice(0,topN);
+    document.getElementById('rankCount').textContent=(prefSel||'全国')+'：'+MacroEngine.fmt(total)+'市区町村中 '+MacroEngine.fmt(rows.length)+'件を表示';
+    var h='<thead><tr><th class="rk">#</th>';
+    cols.forEach(function(c){ var on=(c.key===muniSort.key); h+='<th class="'+(c.num?'num ':'')+'sortable'+(on?' on':'')+'" data-k="'+c.key+'">'+c.label+(on?(muniSort.dir<0?' ▼':' ▲'):'')+'</th>'; });
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r,i){
+      h+='<tr><td class="rk">'+(i+1)+'</td>';
+      cols.forEach(function(c,ci){ var v=r[c.key];
+        if(ci===0){ h+='<td class="pf">'+v+'</td>'; }
+        else if(ci===1){ h+='<td class="pf" style="color:var(--ink-faint);font-weight:400">'+v+'</td>'; }
+        else { h+='<td class="num">'+c.fmt(v)+'</td>'; }
+      });
+      h+='</tr>';
+    });
+    h+='</tbody>';
+    var t=document.getElementById('mtbl'); t.innerHTML=h;
+    t.querySelectorAll('th.sortable').forEach(function(th){ th.addEventListener('click',function(){
+      var k=th.getAttribute('data-k');
+      if(muniSort.key===k) muniSort.dir*=-1; else { muniSort.key=k; muniSort.dir=(k==='name'||k==='pref')?1:-1; }
+      renderMuniRank();
+    });});
+  }
+  function initRankControls(){
+    var sel=document.getElementById('rankPref');
+    DATA.prefectures.slice().sort(function(a,b){return String(a.yomi||a.name).localeCompare(String(b.yomi||b.name),'ja');})
+      .forEach(function(p){ var o=document.createElement('option'); o.value=p.name; o.textContent=p.name; sel.appendChild(o); });
+    sel.addEventListener('change', renderMuniRank);
+    document.getElementById('rankTop').addEventListener('change', renderMuniRank);
+    // タブ
+    document.querySelectorAll('.rtab').forEach(function(btn){ btn.addEventListener('click',function(){
+      document.querySelectorAll('.rtab').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on');
+      var tab=btn.getAttribute('data-tab');
+      document.getElementById('tab-muni').hidden = (tab!=='muni');
+      document.getElementById('tab-pref').hidden = (tab!=='pref');
+    });});
+    renderMuniRank();
+  }
+
   // ── ダッシュボード描画 ──
   function renderArea(region, prefLabel, name){
     cur=region;
@@ -292,26 +435,55 @@
     document.getElementById('areaPref').textContent=prefLabel?('（'+prefLabel+'）'):'';
     document.getElementById('asof').textContent='現在推計値 ／ '+new Date().toLocaleDateString('ja-JP')+' 時点（毎月更新・以降2040年まで予測）';
 
+    var iv=MacroEngine.investScore(region,e,META);
+    var sg=iv.sg, sp=iv.sp, ip=iv.ip;
+
     var mPct=(e.popMale/e.pop*100), fPct=100-mPct;
-    var fb=function(v){ var c=v>=100?'#7d6329':'#a8432e'; return '<span style="color:'+c+';font-weight:600">供給充足率 '+v+'%</span>'; };
-    var cards=[
+    // 供給充足率（全国=100）：薄い＝参入余地
+    var fb=function(v){ var c=v>=100?'#7d6329':'#a8432e'; var t=v>=100?'':'（薄い＝余地）'; return '<span style="color:'+c+';font-weight:600">充足 '+v+'%'+t+'</span>'; };
+    // スコア用ミニゲージ（0〜100）
+    var gauge=function(v,tone){ v=Math.max(0,Math.min(100,v)); var col=tone==='gap'?'var(--coral)':'var(--gold)';
+      return '<div class="gg"><div class="gg-tr"><div class="gg-fl" style="width:'+v+'%;background:'+col+'"></div></div><div class="gg-vl num">'+v+'</div></div>'; };
+    var waiting='<span class="wait">データ待ち</span>';
+
+    renderScore(iv,e,name);
+
+    // ── ② 需要 ──
+    paintCards('cards-demand',[
       {lbl:'総人口', big:MacroEngine.fmt(e.pop), unit:'人',
         html:'<div class="splitbar"><div class="m" style="width:'+mPct+'%"></div><div class="f" style="width:'+fPct+'%"></div></div>'+
              '<div class="splitbar-legend"><span><span class="dot" style="background:var(--male)"></span>男 '+MacroEngine.fmtMan(e.popMale)+'</span><span><span class="dot" style="background:var(--female)"></span>女 '+MacroEngine.fmtMan(e.popFemale)+'</span></div>'},
       {lbl:'高齢化率', big:e.aging.toFixed(1), unit:'%',
         html:'<div class="age3"><div class="y" style="width:'+e.youth+'%"></div><div class="w" style="width:'+e.working+'%"></div><div class="e" style="width:'+e.aging+'%"></div></div>'+
              '<div class="age3-legend"><span><span class="dot" style="background:var(--gold);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>年少 '+e.youth.toFixed(1)+'%</span><span><span class="dot" style="background:var(--ink-faint);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>生産年齢 '+e.working.toFixed(1)+'%</span><span><span class="dot" style="background:var(--gold-deep);display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px"></span>老年 '+e.aging.toFixed(1)+'%</span></div>'},
-      {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%'},
-      {lbl:'社会福祉法人', big:MacroEngine.fmt(e.facilities.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人 ／ '+fb(e.fill.shafuku)+'（人口あたり・全国平均=100）'},
-      {lbl:'介護事業所（介護保険サービス事業所の総数）', big:MacroEngine.fmt(e.facilities.kaigo), unit:'所', sub:'在宅系（訪問介護・通所・居宅介護支援・福祉用具・訪問看護 等）＋居住・施設系（特養・老健・介護医療院、有料老人ホーム〈特定施設・住宅型〉、グループホーム、小規模多機能、その他）。介護施設ベッド（特養'+MacroEngine.fmt(e.facilities.tokuyo)+'・老健'+MacroEngine.fmt(e.facilities.roken)+'≒'+MacroEngine.fmtMan(e.careBeds)+'床）÷要介護等認定者 '+fb(e.fill.kaigoBed)+'（全国平均=100／有料・GH等の定員は未算入）'},
+      {lbl:'労働人口（推計）', big:MacroEngine.fmt(e.labor), unit:'人', sub:'生産年齢人口 '+MacroEngine.fmtMan(e.workingN)+'人 × 労働力率'+Math.round((META.laborForceRate||0.82)*100)+'%。2040年の高齢化率は推計'+iv.ag2040+'%まで上昇＝需要は当面続く。'},
+    ]);
+
+    // ── ③ 供給空白 ──
+    paintCards('cards-supply',[
       {lbl:'医療機関（病院・一般診療所）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 住民 '+MacroEngine.fmt(e.per.hospital)+'人に病院1・'+MacroEngine.fmt(e.per.clinic)+'人に診療所1'},
-      {lbl:'歯科診療所', big:MacroEngine.fmt(e.facilities.dental), unit:'施設', sub:'住民 '+MacroEngine.fmt(e.per.dental)+'人に1 ／ '+fb(e.fill.dental)+'（人口あたり・全国平均=100）'},
-      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国平均=100）'},
-    ];
-    var wrap=document.getElementById('cards'); wrap.innerHTML='';
-    cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
-      d.innerHTML='<div class="lbl">'+c.lbl+'</div><div class="big num" data-count="'+(c.big.replace(/,/g,''))+'">'+c.big+'<small>'+c.unit+'</small></div>'+(c.html||'')+(c.sub?'<div class="sub">'+c.sub+'</div>':'');
-      wrap.appendChild(d); });
+      {lbl:'推計 病床数', big:MacroEngine.fmt(sg.beds), unit:'床', sub:'高齢者 '+MacroEngine.fmt(sg.bedsPerEld)+'人に1床 ／ '+fb(sg.bedsFill)+'（高齢者あたり・全国=100）。<b>推計＝病院数×全国平均病床（186）</b>。小規模自治体は過大に出やすく、市区町村別の実数（医療施設調査）は'+waiting+'。'},
+      {lbl:'介護（施設ベッド充足）', big:MacroEngine.fmtMan(e.careBeds), unit:'床', sub:'介護事業所 '+MacroEngine.fmt(e.facilities.kaigo)+'所（在宅＋居住・施設系の総数）。特養'+MacroEngine.fmt(e.facilities.tokuyo)+'・老健'+MacroEngine.fmt(e.facilities.roken)+'の推計定員 ÷ 要介護等認定者 '+fb(e.fill.kaigoBed)+'（有料・GH等の定員は未算入）。'},
+      {lbl:'在宅 在支診・訪看（推計）', big:MacroEngine.fmt(sg.zaishien), unit:'在支診', sub:'訪問看護ST '+MacroEngine.fmt(sg.houkan)+'（推計） ／ '+fb(sg.zaishienFill)+'（高齢者あたり・全国=100）。<b>推計＝一般診療所の約14%・介護事業所の約6.5%</b>。市区町村別の実数（在宅療養支援診療所届出・介護サービス施設事業所調査）は'+waiting+'。'},
+      {lbl:'一次/二次救急', big:'—', unit:'', sub:'救急告示・救命救急センターの<b>市区町村別</b>は'+waiting+'（各都道府県の救急告示リストを施設所在地で割付予定）。参考：入院を含む一般医療の完結単位＝二次医療圏は全国約335。'},
+      {lbl:'無医地区リスク（代理指標）', big:sg.muiRisk, unit:'／100', html:gauge(sg.muiRisk,'gap'), sub:'住民あたり診療所の薄さ×小規模×高齢からの<b>代理指標</b>（高いほど医療空白＝参入余地）。公式の「無医地区等調査」の市区町村別は'+waiting+'。'},
+      {lbl:'歯科診療所', big:MacroEngine.fmt(e.facilities.dental), unit:'施設', sub:'住民 '+MacroEngine.fmt(e.per.dental)+'人に1 ／ '+fb(e.fill.dental)+'（人口あたり・全国=100）'},
+      {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国=100）'},
+    ]);
+
+    // ── ④ 承継母数 ──
+    paintCards('cards-roll',[
+      {lbl:'社会福祉法人（承継母数）', big:MacroEngine.fmt(sp.shafuku), unit:'法人', sub:'住民 '+MacroEngine.fmt(e.per.shafuku)+'人に1法人。<b>法人数</b>で、特養・老健などの"施設数"は含みません（法人と施設は別軸）。連携推進法人で束ね・承継していく母数。'},
+      {lbl:'推計 1法人あたり規模', big:sp.eldPerSha?MacroEngine.fmt(sp.eldPerSha):'—', unit:sp.eldPerSha?'高齢者/法人':'', sub:'規模の目安：<b>'+sp.bucket+'</b>（1法人が受け持つ高齢者数の推計）。小さいほど小規模で後継難＝承継しやすい候補になりやすい。'},
+      {lbl:'分散度スコア', big:sp.disperse, unit:'／100', html:gauge(sp.disperse), sub:'高齢者あたりの社福が全国比で多いほど<b>細分化＝束ねる母数が厚い</b>。小規模度 '+sp.smallScale+'／100。いずれも独自推計。'},
+    ]);
+
+    // ── ⑤ 産業再生余地 ──
+    paintCards('cards-industry',[
+      {lbl:'基幹産業（傾向）', big:'', unit:'', big_html:'<div class="bigtxt">'+ip.archetype+'</div>', sub:'この地方で一番稼げる産業の傾向。強み：'+ip.good+'。これを承継し通年雇用をつくると、担い手が戻り医療・介護が続く。'},
+      {lbl:'産業再生 素地スコア', big:ip.score, unit:'／100', html:gauge(ip.score), sub:'一次産業志向×過疎度×担い手流出からの<b>素地の代理指標</b>（高いほど再生余地）。'},
+      {lbl:'実額（産出額・漁業・観光）', big:'—', unit:'', sub:'農業産出額・漁業・延べ宿泊者数の<b>市区町村別実額</b>は'+waiting+'（農林業／漁業センサス・観光統計を取り込み予定）。CSVがあれば即差し替え。'},
+    ]);
 
     // 診療科目
     var km=e.kamoku, keys=Object.keys(km).sort(function(a,b){return km[b]-km[a];});
@@ -324,9 +496,59 @@
     renderHistory(region, e);
     renderRings(region, e);
     renderCare(e);
+    renderSupplyNote();
     renderIndicatorNote();
     fitBig();
     countUp();
+  }
+
+  // カード配列を指定コンテナへ描画（big_html があれば数字の代わりにテキスト）
+  function paintCards(containerId, cards){
+    var wrap=document.getElementById(containerId); if(!wrap) return; wrap.innerHTML='';
+    cards.forEach(function(c){ var d=document.createElement('div'); d.className='card';
+      var big = c.big_html ? c.big_html
+              : '<div class="big num"'+(/^[\d,]+(\.\d+)?$/.test(String(c.big))?' data-count="'+String(c.big).replace(/,/g,'')+'"':'')+'>'+c.big+(c.unit?'<small>'+c.unit+'</small>':'')+'</div>';
+      d.innerHTML='<div class="lbl">'+c.lbl+'</div>'+big+(c.html||'')+(c.sub?'<div class="sub">'+c.sub+'</div>':'');
+      wrap.appendChild(d); });
+  }
+
+  // ── 投資機会スコア パネル ──
+  function renderScore(iv,e,name){
+    var el=document.getElementById('scorePanel'); if(!el) return;
+    var bars=[
+      ['需要','D',iv.D,'gold','高齢化・要介護・2040持続'],
+      ['供給空白','S',iv.S,'coral','病床・介護・診療所が薄いほど高'],
+      ['承継母数','R',iv.R,'gold','社福の分散・小規模・後継難'],
+      ['産業再生余地','I',iv.I,'gold','基幹産業の素地・過疎・担い手流出'],
+    ];
+    var tier = iv.total>=55?['先に入る価値が高い','var(--coral-deep)'] : iv.total>=42?['有力な候補','var(--gold-deep)'] : iv.total>=30?['中位','var(--gold-deep)'] : ['都市型・この構想の主対象ではない','var(--ink-faint)'];
+    // 一言の読み方
+    var read='高齢化'+e.aging.toFixed(0)+'%の需要に対し、';
+    read += iv.S>=55?'供給は全国比で薄く参入余地が大きい。':(iv.S>=38?'供給の薄さがところどころ残る。':'供給は全国平均並み〜厚い。');
+    read += iv.R>=55?'社福は細分化し、束ねる母数が厚い。':(iv.R>=38?'社福の承継母数は中程度。':'社福は大規模・集約寄りで承継母数は薄め。');
+    read += iv.I>=55?'基幹産業の再生で通年雇用をつくる素地が大きい。':(iv.I>=38?'産業再生の素地はそれなりにある。':'再生すべき一次産業の素地は小さい（都市型）。');
+
+    var barsH=bars.map(function(b){ var col=b[3]==='coral'?'var(--coral)':'var(--gold)';
+      return '<div class="sc-bar"><div class="sc-k"><b>'+b[0]+'</b><span>'+b[1]+'</span></div>'+
+             '<div class="sc-tr"><div class="sc-fl" style="width:'+b[2]+'%;background:'+col+'"></div></div>'+
+             '<div class="sc-v num">'+b[2]+'</div><div class="sc-note">'+b[4]+'</div></div>'; }).join('');
+
+    el.innerHTML=''+
+      '<div class="sc-total">'+
+        '<div class="sc-tlbl">投資機会スコア<span>仮説モデル・0〜100</span></div>'+
+        '<div class="sc-big num" data-count="'+iv.total+'">'+iv.total+'</div>'+
+        '<div class="sc-tier" style="color:'+tier[1]+'">'+tier[0]+'</div>'+
+        '<div class="sc-formula">需要 × 供給空白 × 承継母数 × 産業再生余地（幾何平均）</div>'+
+      '</div>'+
+      '<div class="sc-bars">'+barsH+
+        '<div class="sc-read">'+read+'<span class="sc-disc">投資機会スコアは独自推計の仮説であり、利回りや成否を約束するものではありません。社福（社会福祉法人）は剰余金を配当できず、投資資金は現場へ直接投じられません（SPC／ファンド／TAmJ を経由）。</span></div>'+
+      '</div>';
+  }
+
+  // 供給空白の注記
+  function renderSupplyNote(){
+    var el=document.getElementById('supplyNote'); if(!el) return;
+    el.innerHTML='<b>供給空白の読み方</b>： 充足率は<b>全国平均=100</b>の指数。<b>100を下回る＝全国より薄い＝参入余地</b>。<b>病床・在宅（在支診／訪看）は独自推計</b>（病院数・診療所数・介護事業所数からの按分）で、<b>一次/二次救急・無医地区の市区町村別は公式データ待ち</b>です（骨組みを先に置き、実データが入り次第 差し替え）。密度の目安であり、質・救急体制・診療科の充実度は反映しません。';
   }
 
   // 要介護・要支援 認定者（介護度別・推計）
@@ -354,16 +576,19 @@
 
   // ── 大きな数字を1行に収める（桁が大きい全国などで「人」が段落してカードがズレるのを防ぐ） ──
   function fitBig(){
-    var els=[].slice.call(document.querySelectorAll('#cards .big'));
-    if(!els.length) return;
-    var size=999;
-    els.forEach(function(el){
-      el.style.fontSize='';
-      var s=parseFloat(getComputedStyle(el).fontSize)||28, guard=0;
-      while(el.scrollWidth>el.clientWidth+1 && s>12 && guard<48){ s-=1; el.style.fontSize=s+'px'; guard++; }
-      if(s<size) size=s;
+    // 各カードグリッド（.cards）ごとに、その中の .big を独立して縮小・整列
+    [].slice.call(document.querySelectorAll('.cards')).forEach(function(grid){
+      var els=[].slice.call(grid.querySelectorAll('.big'));
+      if(!els.length) return;
+      var size=999;
+      els.forEach(function(el){
+        el.style.fontSize='';
+        var s=parseFloat(getComputedStyle(el).fontSize)||28, guard=0;
+        while(el.scrollWidth>el.clientWidth+1 && s>12 && guard<48){ s-=1; el.style.fontSize=s+'px'; guard++; }
+        if(s<size) size=s;
+      });
+      els.forEach(function(el){ el.style.fontSize=size+'px'; });
     });
-    els.forEach(function(el){ el.style.fontSize=size+'px'; });  // 全カードを同じ大きさに揃える
   }
 
   // ── 数値表（隔年・人・増減人・背景） ──

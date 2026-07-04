@@ -386,6 +386,106 @@
     return { rows: rows, popStory: popStory, good: good, bad: bad, careStory: careStory, industry: ind.base };
   }
 
-  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, aggregate, regionPop, NATIONAL_POP, yearFrac, fmt, fmtMan };
+  /* ============================================================
+     投資家スクリーニング（独自推計・仮説モデル）
+     4軸：需要 D × 供給空白 S × 承継母数 R × 産業再生余地 I
+     → 投資機会スコア（幾何平均・0〜100）。「どこから入るか」を採点する。
+     いずれも公式アンカーを人口按分した推計で、断定ではない。
+     ============================================================ */
+  function clamp01(x){ return x < 0 ? 0 : x > 1 ? 1 : x; }
+  // v を [lo,hi] で 0〜100 に正規化。hi<lo を渡せば反転（小さいほど高い）。
+  function nz(v, lo, hi){ if (hi === lo) return 0; return clamp01((v - lo) / (hi - lo)) * 100; }
+
+  // 供給空白の推計値（一部は公式の市区町村別データ待ち＝代理指標で骨組み）
+  function supplyGap(region, e, meta){
+    var nat = meta.national || {};
+    var natPop = (nat.pop2020 || 0) * 1000;
+    var natEld = natPop * (nat.aging2025 || NATL_2025) / 100;
+    // 病床（推計）＝病院数 × 1病院あたり平均病床（全国 病院≈8,064・病床約150万→概算186）
+    var AVG_HOSP_BEDS = 186;
+    var beds = Math.round(e.facilities.hospital * AVG_HOSP_BEDS);
+    var natBeds = (nat.hospital || 0) * AVG_HOSP_BEDS;
+    var bedsPerEld = (beds > 0 && e.elderlyN > 0) ? Math.round(e.elderlyN / beds) : 0;
+    var bedsFill = (beds > 0 && natBeds > 0 && e.elderlyN > 0)
+      ? Math.round((beds / e.elderlyN) / (natBeds / natEld) * 100) : 0;
+    // 在宅療養支援診療所（推計）≒一般診療所の約14%（全国≈15,000）
+    var zaishien = Math.round(e.facilities.clinic * 0.14);
+    var natZai = Math.round((nat.clinic || 0) * 0.14);
+    var zaishienFill = (natZai > 0 && e.elderlyN > 0)
+      ? Math.round((zaishien / e.elderlyN) / (natZai / natEld) * 100) : 0;
+    // 訪問看護ステーション（推計）≒介護事業所の約6.5%（全国≈15,000）
+    var houkan = Math.round(e.facilities.kaigo * 0.065);
+    // 無医地区リスク（代理指標・公式の「無医地区等調査」はデータ待ち）
+    //   住民あたり診療所が薄い × 小規模 × 高齢 → 医療空白＝参入余地が大きい
+    var clinicSparse = nz(e.per.clinic, 900, 3200);
+    var smallPop = nz(region.pop2020 || 0, 60, 3);
+    var aged = nz(e.aging, 30, 44);
+    var muiRisk = Math.round(0.45 * clinicSparse + 0.30 * smallPop + 0.25 * aged);
+    return { beds: beds, bedsPerEld: bedsPerEld, bedsFill: bedsFill,
+             zaishien: zaishien, zaishienFill: zaishienFill, houkan: houkan, muiRisk: muiRisk };
+  }
+
+  // 承継母数（ロールアップ）：社福が細分化・小規模・後継難ほど厚い
+  function successionPool(region, e, meta){
+    var nat = meta.national || {};
+    var natPop = (nat.pop2020 || 0) * 1000;
+    var natEld = natPop * (nat.aging2025 || NATL_2025) / 100;
+    var shafuku = e.facilities.shafuku;
+    // 分散度：高齢者あたり社福が全国比で多い＝細分化＝束ねる母数が厚い
+    var natShaPerEld = natEld > 0 ? (nat.shafuku || 0) / natEld : 0;
+    var locShaPerEld = e.elderlyN > 0 ? shafuku / e.elderlyN : 0;
+    var disperse = natShaPerEld > 0 ? nz(locShaPerEld / natShaPerEld, 0.7, 1.8) : 0;
+    // 規模：1法人あたりの高齢者数の目安（小さい＝小規模＝承継しやすい／後継難）
+    var eldPerSha = shafuku > 0 ? Math.round(e.elderlyN / shafuku) : 0;
+    var smallScale = shafuku > 0 ? nz(eldPerSha, 5000, 800) : 0;   // 5000人/法人→0(大), 800→100(小)
+    // 承継圧力：高齢化＝経営者の高齢化・後継難
+    var pressure = nz(e.aging, 30, 44);
+    var score = Math.round(0.42 * disperse + 0.33 * smallScale + 0.25 * pressure);
+    var bucket = eldPerSha === 0 ? '—' : (eldPerSha >= 3000 ? '大' : eldPerSha >= 1500 ? '中' : '小');
+    return { shafuku: shafuku, eldPerSha: eldPerSha, disperse: Math.round(disperse),
+             smallScale: Math.round(smallScale), score: score, bucket: bucket };
+  }
+
+  // 産業再生余地：一次産業志向の地方 × 過疎度 × 担い手流出 → 素地スコア
+  //   （実額＝農業産出額・漁業・観光宿泊 の市区町村別はデータ待ち。ここは素地の代理指標）
+  function industryPotential(region, e){
+    var ind = REGION_IND[region.region] || REGION_IND['関東'];
+    var primaryWeight = { '北海道':95,'東北':82,'四国':80,'九州':78,'中国':70,'中部':55,'近畿':40,'関東':30 };
+    var prim = primaryWeight[region.region] != null ? primaryWeight[region.region] : 55;
+    var rural = nz(region.pop2020 || 0, 60, 3);              // 小規模ほど高
+    var loss = nz(-(region.growth || 0), 0.2, 1.6);          // 人口減が速いほど高
+    var workingThin = nz(e.working, 62, 48);                 // 生産年齢が薄いほど高
+    var score = Math.round(0.34 * prim + 0.26 * rural + 0.20 * loss + 0.20 * workingThin);
+    return { archetype: ind.base, good: ind.good, prim: prim, score: Math.min(100, score) };
+  }
+
+  // 投資機会スコア（4軸の幾何平均 × 需要規模の実効係数）
+  function investScore(region, e, meta){
+    var sg = supplyGap(region, e, meta);
+    var sp = successionPool(region, e, meta);
+    var ip = industryPotential(region, e);
+    var ag2040 = Math.min(50, Math.max(12, regionAging(region.aging, 2040)));
+    // D 需要（強度＝高齢化率 ／ 持続＝2040高齢化 ／ 規模＝要介護認定者[log]）
+    var intensity = nz(e.aging, 24, 44);
+    var durab = nz(ag2040, 28, 48);
+    var size = nz(Math.log10(Math.max(1, e.care.total)), 2.3, 5.3);
+    var D = Math.round(0.42 * intensity + 0.28 * durab + 0.30 * size);
+    // S 供給空白（充足率が全国比で薄い＝高い ＋ 無医地区リスク）
+    var thin = function(fill){ return nz(fill == null ? 100 : fill, 130, 55); };
+    var S = Math.round(0.30 * thin(sg.bedsFill) + 0.28 * thin(e.fill.kaigoBed) +
+                       0.22 * thin(e.fill.clinic) + 0.20 * sg.muiRisk);
+    var R = sp.score;      // 承継母数
+    var I = ip.score;      // 産業再生余地
+    // 需要が極端に小さい所は緩やかに減点（0.6〜1.0）
+    var viability = 0.6 + 0.4 * (nz(Math.log10(Math.max(1, e.care.total)), 1.8, 3.3) / 100);
+    var cc = function(x){ return Math.max(2, Math.min(100, x)); };
+    var gm = Math.pow(cc(D) * cc(S) * cc(R) * cc(I), 0.25);
+    var total = Math.round(gm * viability);
+    return { total: total, D: cc(D), S: cc(S), R: cc(R), I: cc(I),
+             sg: sg, sp: sp, ip: ip, ag2040: +ag2040.toFixed(1) };
+  }
+
+  global.MacroEngine = { estimateToday, trendSeries, tableRows, narrative, aggregate, regionPop, NATIONAL_POP, yearFrac, fmt, fmtMan,
+                         supplyGap, successionPool, industryPotential, investScore };
 
 })(typeof window !== 'undefined' ? window : globalThis);
