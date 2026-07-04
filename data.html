@@ -7,7 +7,7 @@
 <meta name="description" content="全国の市区町村単位で、人口・年齢・労働人口・高齢化率・社会福祉法人数・介護事業所数・医療機関数（診療科目別）・薬局数を、公式統計アンカーから今日の日付へ日次補間した独自マクロ推計として表示。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -58,9 +58,9 @@
 
       <div class="trend">
         <h3>人口と高齢化率の推移（2000 → 現在）</h3>
-        <div class="cap" id="trendCap">独自推計。<span style="color:#0a63d6;font-weight:600">青＝人口（千人）</span>、<span style="color:#0f1720;font-weight:600">黒＝高齢化率（%）</span>。</div>
+        <div class="cap" id="trendCap">独自推計。<span style="color:#2b2621;font-weight:600">墨＝人口（千人）</span>、<span style="color:#a8432e;font-weight:600">朱＝高齢化率（%）</span>。</div>
         <div id="chart"></div>
-        <div class="lg"><span><span class="dot" style="background:#0a63d6"></span>人口</span><span><span class="dot" style="background:#0f1720"></span>高齢化率</span></div>
+        <div class="lg"><span><span class="dot" style="background:#2b2621"></span>人口</span><span><span class="dot" style="background:#a8432e"></span>高齢化率</span></div>
         <div id="dtable"></div>
       </div>
 
@@ -249,12 +249,12 @@
     [2000,2005,2010,2015,2020,Math.floor(maxX)].forEach(function(yr){ if(yr>=minX&&yr<=maxX){ xticks+='<text x="'+X(yr)+'" y="'+(H-10)+'" fill="#8b857b" font-size="11" text-anchor="middle" font-family="Fraunces,serif">'+yr+'</text>'; }});
     var last=pts[pts.length-1];
     var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+grid+xticks+
-      '<path d="'+path(pops,YP)+'" fill="none" stroke="#0a63d6" stroke-width="2.6"/>'+
-      '<path d="'+path(ages,YA)+'" fill="none" stroke="#0f1720" stroke-width="2.6"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#0a63d6"/>'+
-      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#0f1720"/>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#0a63d6" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
-      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#0f1720" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
+      '<path d="'+path(pops,YP)+'" fill="none" stroke="#2b2621" stroke-width="2.6"/>'+
+      '<path d="'+path(ages,YA)+'" fill="none" stroke="#a8432e" stroke-width="2.6"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YP(last.pop)+'" r="4.5" fill="#2b2621"/>'+
+      '<circle cx="'+X(last.year)+'" cy="'+YA(last.aging)+'" r="4.5" fill="#a8432e"/>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YP(last.pop)-10)+'" fill="#2b2621" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+MacroEngine.fmt(last.pop)+'千</text>'+
+      '<text x="'+(X(last.year)-6)+'" y="'+(YA(last.aging)-10)+'" fill="#a8432e" font-size="12" text-anchor="end" font-family="Fraunces,serif">'+last.aging.toFixed(1)+'%</text>'+
       '</svg>';
     document.getElementById('chart').innerHTML=svg;
   }

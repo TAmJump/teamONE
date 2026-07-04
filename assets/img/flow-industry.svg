@@ -1,0 +1,35 @@
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="地域産業の循環：産業再生→雇用→担い手→医療介護の持続">
+  <rect width="900" height="560" fill="#ffffff"/>
+  <g font-family="'Zen Kaku Gothic New',sans-serif">
+    <circle cx="450" cy="280" r="200" fill="none" stroke="#a4863f" stroke-width="6" stroke-dasharray="4 12" stroke-linecap="round" opacity=".6"/>
+    <g>
+      <rect x="330" y="40" width="240" height="96" rx="14" fill="#a4863f"/>
+      <text x="450" y="82" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">地域No.1産業を承継</text>
+      <text x="450" y="108" text-anchor="middle" fill="#ffffff" font-size="13" opacity=".85">農・水産・観光・物流</text>
+    </g>
+    <g>
+      <rect x="640" y="230" width="220" height="96" rx="14" fill="#f0e7d3"/>
+      <text x="750" y="272" text-anchor="middle" fill="#2b2621" font-size="18" font-weight="700">通年の雇用</text>
+      <text x="750" y="298" text-anchor="middle" fill="#5a5147" font-size="13">若者が戻る</text>
+    </g>
+    <g>
+      <rect x="330" y="424" width="240" height="96" rx="14" fill="#7d6329"/>
+      <text x="450" y="466" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">担い手が確保できる</text>
+      <text x="450" y="492" text-anchor="middle" fill="#ffffff" font-size="13" opacity=".85">介護・医療の人手</text>
+    </g>
+    <g>
+      <rect x="40" y="230" width="220" height="96" rx="14" fill="#f0e7d3"/>
+      <text x="150" y="272" text-anchor="middle" fill="#2b2621" font-size="18" font-weight="700">医療・介護が続く</text>
+      <text x="150" y="298" text-anchor="middle" fill="#5a5147" font-size="13">地域が持続する</text>
+    </g>
+    <g stroke="#a4863f" stroke-width="5" fill="none" stroke-linecap="round">
+      <path d="M575 110 Q680 150 730 226" marker-end="url(#a)"/>
+      <path d="M735 330 Q640 420 575 452" marker-end="url(#a)"/>
+      <path d="M325 452 Q220 420 165 330" marker-end="url(#a)"/>
+      <path d="M155 226 Q210 150 325 110" marker-end="url(#a)"/>
+    </g>
+    <defs><marker id="a" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="#a4863f" stroke-width="2" stroke-linecap="round"/></marker></defs>
+    <text x="450" y="272" text-anchor="middle" fill="#2b2621" font-family="'Zen Old Mincho',serif" font-size="17" font-weight="700">地域が</text>
+    <text x="450" y="298" text-anchor="middle" fill="#2b2621" font-family="'Zen Old Mincho',serif" font-size="17" font-weight="700">まわり出す</text>
+  </g>
+</svg>

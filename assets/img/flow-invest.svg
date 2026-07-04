@@ -1,0 +1,49 @@
+<svg viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="投資の流れ：いくら出して、何に使われ、どんなリターンがあるか">
+  <rect width="1000" height="440" fill="#ffffff"/>
+  <style>
+    .lbl{font-family:'Zen Old Mincho',serif;fill:#2b2621}
+    .sub{font-family:'Zen Kaku Gothic New',sans-serif;fill:#5a5147}
+    .wht{font-family:'Zen Kaku Gothic New',sans-serif;fill:#ffffff}
+    .amt{font-family:'Fraunces',serif;fill:#a4863f}
+  </style>
+
+  <!-- STEP 1 : 投資家 -->
+  <rect x="40" y="150" width="200" height="140" rx="14" fill="#a4863f"/>
+  <text class="wht" x="140" y="200" text-anchor="middle" font-size="20" font-weight="700">投資する</text>
+  <text class="wht" x="140" y="245" text-anchor="middle" font-family="Fraunces,serif" font-size="34">¥1億</text>
+  <text class="wht" x="140" y="272" text-anchor="middle" font-size="13" opacity=".85">（例）</text>
+
+  <!-- arrow 1 -->
+  <line x1="248" y1="220" x2="320" y2="220" stroke="#a4863f" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="320,220 302,210 302,230" fill="#a4863f"/>
+
+  <!-- STEP 2 : 器＋使い道 -->
+  <rect x="330" y="70" width="320" height="300" rx="16" fill="#f0e7d3"/>
+  <text class="lbl" x="490" y="108" text-anchor="middle" font-size="17" font-weight="700">器（SPC・ファンド）</text>
+  <text class="sub" x="490" y="132" text-anchor="middle" font-size="13">現場ではなく、この器に入る</text>
+
+  <rect x="356" y="152" width="268" height="58" rx="10" fill="#ffffff" stroke="#a4863f" stroke-width="1.5"/>
+  <text class="lbl" x="378" y="180" font-size="15" font-weight="700">施設の取得・改修</text>
+  <text class="sub" x="378" y="200" font-size="12">建物を持ち、貸す</text>
+
+  <rect x="356" y="220" width="268" height="58" rx="10" fill="#ffffff" stroke="#a4863f" stroke-width="1.5"/>
+  <text class="lbl" x="378" y="248" font-size="15" font-weight="700">DX・仕組み</text>
+  <text class="sub" x="378" y="268" font-size="12">連絡・請求・共同購入</text>
+
+  <rect x="356" y="288" width="268" height="58" rx="10" fill="#ffffff" stroke="#a4863f" stroke-width="1.5"/>
+  <text class="lbl" x="378" y="316" font-size="15" font-weight="700">物流</text>
+  <text class="sub" x="378" y="336" font-size="12">共同購入・共同配送</text>
+
+  <!-- arrow 2 -->
+  <line x1="658" y1="220" x2="730" y2="220" stroke="#a4863f" stroke-width="5" stroke-linecap="round"/>
+  <polygon points="730,220 712,210 712,230" fill="#a4863f"/>
+
+  <!-- STEP 3 : リターン -->
+  <rect x="740" y="150" width="220" height="140" rx="14" fill="#7d6329"/>
+  <text class="wht" x="850" y="196" text-anchor="middle" font-size="18" font-weight="700">リターン</text>
+  <text class="wht" x="850" y="238" text-anchor="middle" font-family="Fraunces,serif" font-size="30">年5〜8%</text>
+  <text class="wht" x="850" y="266" text-anchor="middle" font-size="12" opacity=".85">賃料・手数料・成長（仮説）</text>
+
+  <!-- note bottom -->
+  <text class="sub" x="500" y="410" text-anchor="middle" font-size="13">お金は福祉の現場へ直接は入らない。器を通して、地域の資産に変わる。</text>
+</svg>

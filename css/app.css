@@ -3,13 +3,14 @@
    白背景 / gold #a4863f / Fraunces + Zen Old Mincho + Zen Kaku Gothic
    ============================================================ */
 :root{
-  --ink:#0f1720;--ink-soft:#3d4954;--ink-faint:#8892a0;
-  --paper:#ffffff;--paper-warm:#f4f8fd;--paper-line:#e6edf5;
-  --gold:#0a63d6;--gold-deep:#0846a0;--gold-wash:#e8f1fd;
-  --coral:#0a63d6;--coral-deep:#0846a0;--coral-wash:#e8f1fd;
-  --rule:#dce6f2;--alert:#0a63d6;--pos:#0846a0;--male:#0a63d6;--female:#7fb0ee;
-  --pop:#0a63d6;--aging:#0f1720;
-  --serif-en:'Fraunces',serif;--serif-jp:'Zen Old Mincho',serif;--sans-jp:'Zen Kaku Gothic New',sans-serif;
+  --ink:#2b2621;--ink-soft:#5a5147;--ink-faint:#938978;
+  --paper:#faf6ec;--paper-warm:#f2ebda;--paper-line:#e7ddc8;
+  --gold:#a4863f;--gold-deep:#7d6329;--gold-wash:#f0e7d3;
+  --coral:#a8432e;--coral-deep:#8a3620;--coral-wash:#f1e0d7;
+  --rule:#ddd2ba;--alert:#a8432e;--pos:#7d6329;--male:#2b2621;--female:#a4863f;
+  --pop:#2b2621;--aging:#a8432e;
+  --serif-en:'Fraunces',serif;--serif-jp:'Shippori Mincho','Zen Old Mincho',serif;
+  --brush:'Yuji Syuku','Shippori Mincho',serif;--sans-jp:'Zen Kaku Gothic New',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -17,14 +18,14 @@ body{background:var(--paper);color:var(--ink);font-family:var(--sans-jp);line-he
 ::selection{background:var(--gold-wash)}
 .num{font-family:var(--serif-en);font-feature-settings:"tnum"}
 .mincho{font-family:var(--serif-jp)}
-h1,h2,h3{font-family:var(--serif-jp);font-weight:600;letter-spacing:.03em;line-height:1.4}
+h1,h2,h3{font-family:var(--brush);font-weight:400;letter-spacing:.04em;line-height:1.45}
 a{color:inherit}
 .wrap{max-width:1200px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
 
 /* header */
 header.site{border-bottom:1px solid var(--rule);background:var(--paper);position:sticky;top:0;z-index:50}
 .site .bar{display:flex;align-items:center;gap:16px;padding:14px clamp(16px,4vw,48px)}
-.site .brand{font-family:var(--serif-jp);font-weight:700;font-size:1.15rem;letter-spacing:.04em}
+.site .brand{font-family:var(--brush);font-weight:400;font-size:1.2rem;letter-spacing:.06em}
 .site .brand .en{font-family:var(--serif-en);font-style:italic;font-weight:500;color:var(--gold-deep);font-size:.8rem;display:block;letter-spacing:.06em;margin-top:1px}
 .site .authbox{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:.85rem}
 .site .authbox .who{color:var(--ink-soft)}
@@ -149,11 +150,11 @@ footer.site .src{font-size:.72rem;color:rgba(250,248,244,.4);margin-top:12px}
 
 /* history / 沿革 */
 .history{margin:26px 0}
-.history .htitle{font-family:var(--serif-jp);font-size:1.25rem;margin-bottom:6px}
+.history .htitle{font-family:var(--brush);font-size:1.25rem;margin-bottom:6px}
 .history .hnote{font-size:.84rem;color:var(--ink-faint);margin-bottom:16px;line-height:1.7}
 .history .hnote b{color:var(--gold-deep)}
 .hcard{border:1px solid var(--rule);border-radius:12px;padding:18px 20px;margin-bottom:14px;background:var(--paper)}
-.hcard .hh{font-family:var(--serif-jp);font-weight:600;font-size:1rem;margin-bottom:8px;color:var(--ink)}
+.hcard .hh{font-family:var(--brush);font-weight:600;font-size:1rem;margin-bottom:8px;color:var(--ink)}
 .hcard p{font-size:.92rem;color:var(--ink-soft);line-height:1.85;margin:0}
 .hcard ul{margin:0;padding-left:1.1em}
 .hcard li{font-size:.9rem;color:var(--ink-soft);line-height:1.8;margin-bottom:4px}
