@@ -17,6 +17,13 @@
   .tg-r{background:#e7efe0;color:#3f6b2e;border:1px solid #cfe0c2}   /* 実データ＝緑 */
   .tg-e{background:var(--gold-wash,#f0e7d3);color:var(--gold-deep,#7d6329);border:1px solid #e4d6b4} /* 推計＝金 */
   .tg-w{background:var(--coral-wash,#f1e0d7);color:var(--coral-deep,#8a3620);border:1px solid #eccfc2} /* 待ち＝朱 */
+  /* ランキング表：ヘッダー1行＋詰めて通常幅に収める（狭い画面のみ横スクロール保険） */
+  .rtbl{min-width:0;font-size:.78rem}
+  .rtbl th,.rtbl td{padding:6px 9px}
+  .rtbl th{font-size:.72rem;letter-spacing:0;line-height:1.2;white-space:nowrap}
+  .rtbl td{white-space:nowrap}
+  .rtbl th.rk,.rtbl td.rk{width:28px}
+  @media(max-width:1180px){.rtbl{font-size:.74rem}.rtbl th{font-size:.68rem}.rtbl th,.rtbl td{padding:5px 7px}}
 </style>
 </head>
 <body>
@@ -325,19 +332,19 @@
     var scoreCell=function(v){return '<b class="scv">'+v+'</b>';};
     var cols=[
       {key:'name',  label:'都道府県', num:false},
-      {key:'score', label:'投資機会<br>スコア', num:true, fmt:scoreCell},
-      {key:'D',     label:'需要<br>D', num:true, fmt:function(v){return v;}},
-      {key:'S',     label:'供給空白<br>S', num:true, fmt:function(v){return v;}},
-      {key:'R',     label:'承継母数<br>R', num:true, fmt:function(v){return v;}},
-      {key:'I',     label:'産業再生<br>I', num:true, fmt:function(v){return v;}},
-      {key:'pop',   label:'現在人口（人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'chg',   label:'人口増減率<br>2000→現在', num:true, fmt:function(v){return (v>0?'+':'')+v.toFixed(1)+'%';}, cls:function(v){return v<0?'neg':'pos';}},
+      {key:'score', label:'投資スコア', num:true, fmt:scoreCell},
+      {key:'D',     label:'需要D', num:true, fmt:function(v){return v;}},
+      {key:'S',     label:'供給空白S', num:true, fmt:function(v){return v;}},
+      {key:'R',     label:'承継母数R', num:true, fmt:function(v){return v;}},
+      {key:'I',     label:'産業再生I', num:true, fmt:function(v){return v;}},
+      {key:'pop',   label:'人口', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'chg',   label:'人口増減率', num:true, fmt:function(v){return (v>0?'+':'')+v.toFixed(1)+'%';}, cls:function(v){return v<0?'neg':'pos';}},
       {key:'aging', label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
       {key:'working',label:'生産年齢率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
-      {key:'labor', label:'労働人口（推計）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'gdp',   label:'県内総生産<br>（兆円・2019）', num:true, fmt:function(v){return v.toFixed(2);}},
-      {key:'fw',    label:'外国人労働者<br>（人・2023）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'fwr',   label:'外国人比率<br>（労働人口比）', num:true, fmt:function(v){return v.toFixed(1)+'%';}}
+      {key:'labor', label:'労働人口', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'gdp',   label:'県内総生産', num:true, fmt:function(v){return v.toFixed(2);}},
+      {key:'fw',    label:'外国人労働者', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'fwr',   label:'外国人比率', num:true, fmt:function(v){return v.toFixed(1)+'%';}}
     ];
     var rows=RANK_ROWS.slice().sort(function(a,b){
       var k=rankSort.key; if(k==='name') return a.name.localeCompare(b.name,'ja')*rankSort.dir;
@@ -381,15 +388,15 @@
     var cols=[
       {key:'name', label:'市区町村', num:false},
       {key:'pref', label:'都道府県', num:false},
-      {key:'score',label:'投資機会<br>スコア', num:true, fmt:function(v){return '<b class="scv">'+v+'</b>';}},
-      {key:'D',    label:'需要<br>D', num:true, fmt:function(v){return v;}},
-      {key:'S',    label:'供給空白<br>S', num:true, fmt:function(v){return v;}},
-      {key:'R',    label:'承継母数<br>R', num:true, fmt:function(v){return v;}},
-      {key:'I',    label:'産業再生<br>I', num:true, fmt:function(v){return v;}},
+      {key:'score',label:'投資スコア', num:true, fmt:function(v){return '<b class="scv">'+v+'</b>';}},
+      {key:'D',    label:'需要D', num:true, fmt:function(v){return v;}},
+      {key:'S',    label:'供給空白S', num:true, fmt:function(v){return v;}},
+      {key:'R',    label:'承継母数R', num:true, fmt:function(v){return v;}},
+      {key:'I',    label:'産業再生I', num:true, fmt:function(v){return v;}},
       {key:'aging',label:'高齢化率', num:true, fmt:function(v){return v.toFixed(1)+'%';}},
-      {key:'care', label:'要介護等<br>認定者（推計）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'sha',  label:'社福<br>（法人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
-      {key:'pop',  label:'現在人口<br>（人）', num:true, fmt:function(v){return MacroEngine.fmt(v);}}
+      {key:'care', label:'要介護認定者', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'sha',  label:'社福', num:true, fmt:function(v){return MacroEngine.fmt(v);}},
+      {key:'pop',  label:'人口', num:true, fmt:function(v){return MacroEngine.fmt(v);}}
     ];
     var rows=MUNI_ROWS.filter(function(r){return !prefSel || r.pref===prefSel;});
     var total=rows.length;
