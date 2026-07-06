@@ -550,16 +550,18 @@
     var barsH=bars.map(function(b){ var col=b[3]==='coral'?'var(--coral)':'var(--gold)';
       return '<div class="sc-bar"><div class="sc-k"><b>'+b[0]+'</b><span>'+b[1]+'</span></div>'+
              '<div class="sc-tr"><div class="sc-fl" style="width:'+b[2]+'%;background:'+col+'"></div></div>'+
-             '<div class="sc-v num">'+b[2]+'</div><div class="sc-note">'+b[4]+'</div></div>'; }).join('');
+             '<div class="sc-v num">'+b[2]+'<small style="font-size:.5em;color:var(--ink-faint);font-weight:400;letter-spacing:0"> /100</small></div><div class="sc-note">'+b[4]+'</div></div>'; }).join('');
 
     el.innerHTML=''+
       '<div class="sc-total">'+
         '<div class="sc-tlbl">投資機会スコア<span>仮説モデル・0〜100</span></div>'+
         '<div class="sc-big num" data-count="'+iv.total+'">'+iv.total+'</div>'+
         '<div class="sc-tier" style="color:'+tier[1]+'">'+tier[0]+'</div>'+
-        '<div class="sc-formula">需要 × 供給空白 × 承継母数 × 産業再生余地（幾何平均）</div>'+
+        '<div class="sc-formula">需要D × 供給空白S × 承継母数R × 産業再生余地I<br>＝ 4軸（各0〜100）の<b>幾何平均</b> × 規模補正</div>'+
       '</div>'+
-      '<div class="sc-bars">'+barsH+
+      '<div class="sc-bars">'+
+        '<div style="font-size:12px;color:var(--ink-faint);margin-bottom:8px;font-family:var(--sans-jp,\'Zen Kaku Gothic New\')">右の数字＝各軸の点（0〜100・推計）。高いほど投資妙味。<b>幾何平均</b>なので1軸でも低いと総合点は大きく下がる。</div>'+
+        barsH+
         '<div class="sc-read">'+read+'<span class="sc-disc">投資機会スコアは独自推計の仮説であり、利回りや成否を約束するものではありません。社福（社会福祉法人）は剰余金を配当できず、投資資金は現場へ直接投じられません（SPC／ファンド／TAmJ を経由）。</span></div>'+
       '</div>';
   }
