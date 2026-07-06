@@ -429,11 +429,14 @@
     var houReal = (R.houkan != null);
     var houkan = houReal ? R.houkan : Math.round(e.facilities.kaigo * 0.065);
     src.houkan = houReal ? 'real' : 'est';
-    // 救急：実データのみ（無ければ null＝データ待ち）
+    // 救急：実データ（各県 救急告示）優先。無ければ救急空白リスク（代理指標）を推計。
     var er2 = (R.er2 != null) ? R.er2 : null;
     var er3 = (R.er3 != null) ? R.er3 : null;
     var erReal = (er2 != null || er3 != null);
-    src.er = erReal ? 'real' : 'wait';
+    src.er = erReal ? 'real' : 'est';
+    // 救急空白リスク（代理指標・0〜100）：住民あたり病院が薄い×小規模×高齢ほど救急アクセスが空白＝参入余地
+    var hospThin = nz(e.per.hospital, 15000, 90000);
+    var erRisk = Math.round(0.50 * hospThin + 0.30 * nz(region.pop2020 || 0, 80, 4) + 0.20 * nz(e.aging, 30, 44));
     // 無医地区リスク：実データ（無医地区等調査）があれば存在・地区数で構成／無ければ代理指標
     var clinicSparse = nz(e.per.clinic, 900, 3200);
     var smallPop = nz(region.pop2020 || 0, 60, 3);
@@ -454,7 +457,7 @@
     return { beds: beds, bedsPerEld: bedsPerEld, bedsFill: bedsFill,
              zaishien: zaishien, zaishienFill: zaishienFill, houkan: houkan,
              muiRisk: muiRisk, mui: muiN, junmui: junmui, muiReal: muiReal,
-             er2: er2, er3: er3, erReal: erReal, src: src };
+             er2: er2, er3: er3, erReal: erReal, erRisk: erRisk, src: src };
   }
 
   // 承継母数（ロールアップ）：社福が細分化・小規模・後継難ほど厚い
@@ -505,7 +508,12 @@
     var loss = nz(-(region.growth || 0), 0.2, 1.6);          // 人口減が速いほど高
     var workingThin = nz(e.working, 62, 48);                 // 生産年齢が薄いほど高
     var score = Math.round(0.34 * prim + 0.26 * rural + 0.20 * loss + 0.20 * workingThin);
-    return { archetype: ind.base, good: ind.good, prim: prim, score: Math.min(100, score), real: false };
+    // 基幹産業の規模感（推計・0〜100）＝地方アーキタイプの一次産業ウェイト × 人口の裾野
+    var popIdx = nz(region.pop2020 || 0, 3, 200);
+    var sizeIdx = Math.round(0.5 * prim + 0.5 * popIdx);
+    var sizeBucket = sizeIdx >= 66 ? '大きめ' : (sizeIdx >= 40 ? '中程度' : '小さめ');
+    return { archetype: ind.base, good: ind.good, prim: prim, score: Math.min(100, score),
+             real: false, sizeIdx: sizeIdx, sizeBucket: sizeBucket };
   }
 
   // 投資機会スコア（4軸の幾何平均 × 需要規模の実効係数）
@@ -519,18 +527,11 @@
     var durab = nz(ag2040, 28, 48);
     var size = nz(Math.log10(Math.max(1, e.care.total)), 2.3, 5.3);
     var D = Math.round(0.42 * intensity + 0.28 * durab + 0.30 * size);
-    // S 供給空白（充足率が全国比で薄い＝高い ＋ 無医地区リスク ＋ 救急空白[実データ時]）
+    // S 供給空白（充足率が全国比で薄い＝高い ＋ 無医地区 ＋ 救急空白）
     var thin = function(fill){ return nz(fill == null ? 100 : fill, 130, 55); };
-    var S;
-    if (sg.erReal) {
-      // 救急資源（二次救急＋救命救急センター）が少ないほど空白＝高い
-      var erThin = nz((sg.er2 || 0) + (sg.er3 || 0) * 1.5, 3, 0);
-      S = Math.round(0.26 * thin(sg.bedsFill) + 0.24 * thin(e.fill.kaigoBed) +
-                     0.18 * thin(e.fill.clinic) + 0.16 * sg.muiRisk + 0.16 * erThin);
-    } else {
-      S = Math.round(0.30 * thin(sg.bedsFill) + 0.28 * thin(e.fill.kaigoBed) +
-                     0.22 * thin(e.fill.clinic) + 0.20 * sg.muiRisk);
-    }
+    var erGap = sg.erReal ? nz((sg.er2 || 0) + (sg.er3 || 0) * 1.5, 3, 0) : sg.erRisk;
+    var S = Math.round(0.26 * thin(sg.bedsFill) + 0.24 * thin(e.fill.kaigoBed) +
+                       0.18 * thin(e.fill.clinic) + 0.16 * sg.muiRisk + 0.16 * erGap);
     var R = sp.score;      // 承継母数
     var I = ip.score;      // 産業再生余地
     // 需要が極端に小さい所は緩やかに減点（0.6〜1.0）
