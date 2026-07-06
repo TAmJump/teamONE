@@ -9,6 +9,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Yuji+Syuku&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css?v=17">
+<style>
+  /* データ出所バッジ（実データ / 推計 / データ待ち）— data.html 局所 */
+  .tg{display:inline-block;font-size:10px;line-height:1.4;font-weight:700;
+      padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:1px;
+      font-family:var(--sans-jp,'Zen Kaku Gothic New');letter-spacing:.02em;white-space:nowrap}
+  .tg-r{background:#e7efe0;color:#3f6b2e;border:1px solid #cfe0c2}   /* 実データ＝緑 */
+  .tg-e{background:var(--gold-wash,#f0e7d3);color:var(--gold-deep,#7d6329);border:1px solid #e4d6b4} /* 推計＝金 */
+  .tg-w{background:var(--coral-wash,#f1e0d7);color:var(--coral-deep,#8a3620);border:1px solid #eccfc2} /* 待ち＝朱 */
+</style>
 </head>
 <body>
 
@@ -158,7 +167,7 @@
   <div class="src" id="sources"></div>
 </footer>
 
-<script src="js/engine.js?v=20"></script>
+<script src="js/engine.js?v=21"></script>
 <script>
 (function(){
   'use strict';
@@ -445,6 +454,11 @@
     var gauge=function(v,tone){ v=Math.max(0,Math.min(100,v)); var col=tone==='gap'?'var(--coral)':'var(--gold)';
       return '<div class="gg"><div class="gg-tr"><div class="gg-fl" style="width:'+v+'%;background:'+col+'"></div></div><div class="gg-vl num">'+v+'</div></div>'; };
     var waiting='<span class="wait">データ待ち</span>';
+    // 出所バッジ：'real'=実データ / 'est'=推計 / 'wait'=データ待ち
+    var tag=function(s){ return s==='real'?'<span class="tg tg-r">実データ</span>'
+                              : s==='wait'?'<span class="tg tg-w">データ待ち</span>'
+                              : '<span class="tg tg-e">推計</span>'; };
+    var sc=sg.src||{};
 
     renderScore(iv,e,name);
 
@@ -462,11 +476,15 @@
     // ── ③ 供給空白 ──
     paintCards('cards-supply',[
       {lbl:'医療機関（病院・一般診療所）', big:MacroEngine.fmt(e.medTotal), unit:'施設', sub:'病院 '+MacroEngine.fmt(e.facilities.hospital)+' ／ 一般診療所 '+MacroEngine.fmt(e.facilities.clinic)+' ／ 住民 '+MacroEngine.fmt(e.per.hospital)+'人に病院1・'+MacroEngine.fmt(e.per.clinic)+'人に診療所1'},
-      {lbl:'推計 病床数', big:MacroEngine.fmt(sg.beds), unit:'床', sub:'高齢者 '+MacroEngine.fmt(sg.bedsPerEld)+'人に1床 ／ '+fb(sg.bedsFill)+'（高齢者あたり・全国=100）。<b>推計＝病院数×全国平均病床（186）</b>。小規模自治体は過大に出やすく、市区町村別の実数（医療施設調査）は'+waiting+'。'},
+      {lbl:'病床数'+tag(sc.beds), big:MacroEngine.fmt(sg.beds), unit:'床', sub:'高齢者 '+MacroEngine.fmt(sg.bedsPerEld)+'人に1床 ／ '+fb(sg.bedsFill)+'（高齢者あたり・全国=100）。'+(sc.beds==='real'?'<b>医療施設調査の実数</b>。':'<b>推計＝病院数×全国平均病床（186）</b>。小規模自治体は過大に出やすく、市区町村別の実数（医療施設調査）は'+waiting+'。')},
       {lbl:'介護（施設ベッド充足）', big:MacroEngine.fmtMan(e.careBeds), unit:'床', sub:'介護事業所 '+MacroEngine.fmt(e.facilities.kaigo)+'所（在宅＋居住・施設系の総数）。特養'+MacroEngine.fmt(e.facilities.tokuyo)+'・老健'+MacroEngine.fmt(e.facilities.roken)+'の推計定員 ÷ 要介護等認定者 '+fb(e.fill.kaigoBed)+'（有料・GH等の定員は未算入）。'},
-      {lbl:'在宅 在支診・訪看（推計）', big:MacroEngine.fmt(sg.zaishien), unit:'在支診', sub:'訪問看護ST '+MacroEngine.fmt(sg.houkan)+'（推計） ／ '+fb(sg.zaishienFill)+'（高齢者あたり・全国=100）。<b>推計＝一般診療所の約14%・介護事業所の約6.5%</b>。市区町村別の実数（在宅療養支援診療所届出・介護サービス施設事業所調査）は'+waiting+'。'},
-      {lbl:'一次/二次救急', big:'—', unit:'', sub:'救急告示・救命救急センターの<b>市区町村別</b>は'+waiting+'（各都道府県の救急告示リストを施設所在地で割付予定）。参考：入院を含む一般医療の完結単位＝二次医療圏は全国約335。'},
-      {lbl:'無医地区リスク（代理指標）', big:sg.muiRisk, unit:'／100', html:gauge(sg.muiRisk,'gap'), sub:'住民あたり診療所の薄さ×小規模×高齢からの<b>代理指標</b>（高いほど医療空白＝参入余地）。公式の「無医地区等調査」の市区町村別は'+waiting+'。'},
+      {lbl:'在宅 在支診・訪看'+tag(sc.zaishien==='real'&&sc.houkan==='real'?'real':(sc.zaishien==='real'||sc.houkan==='real'?'real':'est')), big:MacroEngine.fmt(sg.zaishien), unit:'在支診', sub:'訪問看護ST '+MacroEngine.fmt(sg.houkan)+' ／ '+fb(sg.zaishienFill)+'（高齢者あたり・全国=100）。'+((sc.zaishien==='real'||sc.houkan==='real')?'<b>届出・調査の実数</b>。':'<b>推計＝一般診療所の約14%・介護事業所の約6.5%</b>。市区町村別の実数（在宅療養支援診療所届出・介護サービス施設事業所調査）は'+waiting+'。')},
+      (sg.erReal
+        ? {lbl:'一次/二次救急'+tag('real'), big:MacroEngine.fmt((sg.er2||0)+(sg.er3||0)), unit:'施設', sub:'二次救急（告示）'+MacroEngine.fmt(sg.er2||0)+' ／ 救命救急センター '+MacroEngine.fmt(sg.er3||0)+'。<b>各都道府県 救急告示リストの実数</b>（施設所在地で市区町村へ割付）。少ないほど救急空白＝参入余地。'}
+        : {lbl:'一次/二次救急'+tag('wait'), big:'—', unit:'', sub:'救急告示・救命救急センターの<b>市区町村別</b>は'+waiting+'（各都道府県の救急告示リストを施設所在地で割付予定）。参考：入院を含む一般医療の完結単位＝二次医療圏は全国約335。'}),
+      (sg.muiReal
+        ? {lbl:'無医地区'+tag('real'), big:MacroEngine.fmt(sg.mui||0), unit:'地区', html:gauge(sg.muiRisk,'gap'), sub:'無医地区 '+MacroEngine.fmt(sg.mui||0)+' ／ 準無医地区 '+MacroEngine.fmt(sg.junmui||0)+'（<b>無医地区等調査の実数</b>）。リスク '+sg.muiRisk+'／100（地区の有無・数から構成）。地区が有る＝医療空白＝参入余地。'}
+        : {lbl:'無医地区リスク（代理指標）'+tag('est'), big:sg.muiRisk, unit:'／100', html:gauge(sg.muiRisk,'gap'), sub:'住民あたり診療所の薄さ×小規模×高齢からの<b>代理指標</b>（高いほど医療空白＝参入余地）。公式の「無医地区等調査」の市区町村別は'+waiting+'。'}),
       {lbl:'歯科診療所', big:MacroEngine.fmt(e.facilities.dental), unit:'施設', sub:'住民 '+MacroEngine.fmt(e.per.dental)+'人に1 ／ '+fb(e.fill.dental)+'（人口あたり・全国=100）'},
       {lbl:'薬局', big:MacroEngine.fmt(e.facilities.pharmacy), unit:'店', sub:'住民 '+MacroEngine.fmt(e.per.pharmacy)+'人に1店 ／ '+fb(e.fill.pharmacy)+'（人口あたり・全国=100）'},
     ]);
@@ -481,8 +499,10 @@
     // ── ⑤ 産業再生余地 ──
     paintCards('cards-industry',[
       {lbl:'基幹産業（傾向）', big:'', unit:'', big_html:'<div class="bigtxt">'+ip.archetype+'</div>', sub:'この地方で一番稼げる産業の傾向。強み：'+ip.good+'。これを承継し通年雇用をつくると、担い手が戻り医療・介護が続く。'},
-      {lbl:'産業再生 素地スコア', big:ip.score, unit:'／100', html:gauge(ip.score), sub:'一次産業志向×過疎度×担い手流出からの<b>素地の代理指標</b>（高いほど再生余地）。'},
-      {lbl:'実額（産出額・漁業・観光）', big:'—', unit:'', sub:'農業産出額・漁業・延べ宿泊者数の<b>市区町村別実額</b>は'+waiting+'（農林業／漁業センサス・観光統計を取り込み予定）。CSVがあれば即差し替え。'},
+      {lbl:'産業再生 素地スコア'+(ip.real?tag('real'):''), big:ip.score, unit:'／100', html:gauge(ip.score), sub:(ip.real?'<b>実額（産出額・漁業・観光）ベース</b>×過疎度・担い手流出で算出（高いほど再生余地）。':'一次産業志向×過疎度×担い手流出からの<b>素地の代理指標</b>（高いほど再生余地）。')},
+      (ip.real
+        ? {lbl:'実額（産出額・漁業・観光）'+tag('real'), big:MacroEngine.fmt((ip.agri||0)+(ip.fishery||0)), unit:'百万円', sub:'農業産出額 '+MacroEngine.fmt(ip.agri||0)+' ／ 漁業 '+MacroEngine.fmt(ip.fishery||0)+'（百万円）／ 延べ宿泊 '+MacroEngine.fmt(ip.tourism||0)+'（千人泊）。<b>センサス・観光統計の実額</b>。素地スコアは実額ベースで算出。'}
+        : {lbl:'実額（産出額・漁業・観光）'+tag('wait'), big:'—', unit:'', sub:'農業産出額・漁業・延べ宿泊者数の<b>市区町村別実額</b>は'+waiting+'（農林業／漁業センサス・観光統計を取り込み予定）。CSVがあれば即差し替え。'}),
     ]);
 
     // 診療科目
@@ -548,7 +568,12 @@
   // 供給空白の注記
   function renderSupplyNote(){
     var el=document.getElementById('supplyNote'); if(!el) return;
-    el.innerHTML='<b>供給空白の読み方</b>： 充足率は<b>全国平均=100</b>の指数。<b>100を下回る＝全国より薄い＝参入余地</b>。<b>病床・在宅（在支診／訪看）は独自推計</b>（病院数・診療所数・介護事業所数からの按分）で、<b>一次/二次救急・無医地区の市区町村別は公式データ待ち</b>です（骨組みを先に置き、実データが入り次第 差し替え）。密度の目安であり、質・救急体制・診療科の充実度は反映しません。';
+    var base='<b>供給空白の読み方</b>： 充足率は<b>全国平均=100</b>の指数。<b>100を下回る＝全国より薄い＝参入余地</b>。';
+    if(META.hasReal){
+      el.innerHTML=base+'各カードの<span class="tg tg-r">実データ</span>は公式統計（医療施設調査・無医地区等調査・救急告示・センサス）の実数、<span class="tg tg-e">推計</span>は按分推計、<span class="tg tg-w">データ待ち</span>は未取込です。密度の目安であり、質・診療科の充実度は反映しません。';
+    } else {
+      el.innerHTML=base+'<b>病床・在宅（在支診／訪看）は独自推計</b>（病院数・診療所数・介護事業所数からの按分）で、<b>一次/二次救急・無医地区の市区町村別は公式データ待ち</b>です（骨組みを先に置き、実データが入り次第 差し替え）。密度の目安であり、質・救急体制・診療科の充実度は反映しません。';
+    }
   }
 
   // 要介護・要支援 認定者（介護度別・推計）

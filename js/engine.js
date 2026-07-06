@@ -102,6 +102,11 @@
     const f = region.facilities;
     const facilities = {};
     Object.keys(f).forEach(k => { facilities[k] = Math.max(0, Math.round(f[k] * facMul)); });
+    // 医療施設調査の実数があれば病院・一般診療所を上書き（存在時のみ・無ければ按分推計のまま）
+    if (region.real) {
+      if (region.real.hospital != null) facilities.hospital = region.real.hospital;
+      if (region.real.clinic   != null) facilities.clinic   = region.real.clinic;
+    }
 
     // 診療科目別（標榜・一般診療所ベース）
     const kamoku = {};
@@ -396,33 +401,60 @@
   // v を [lo,hi] で 0〜100 に正規化。hi<lo を渡せば反転（小さいほど高い）。
   function nz(v, lo, hi){ if (hi === lo) return 0; return clamp01((v - lo) / (hi - lo)) * 100; }
 
-  // 供給空白の推計値（一部は公式の市区町村別データ待ち＝代理指標で骨組み）
+  // 供給空白：region.real があれば実データを優先し、無ければ代理指標（推計）にフォールバック。
+  //   src で各項目が 'real' か 'est' かを返す（UIのバッジ切替に使用）。
   function supplyGap(region, e, meta){
     var nat = meta.national || {};
     var natPop = (nat.pop2020 || 0) * 1000;
     var natEld = natPop * (nat.aging2025 || NATL_2025) / 100;
-    // 病床（推計）＝病院数 × 1病院あたり平均病床（全国 病院≈8,064・病床約150万→概算186）
+    var R = region.real || {};
+    var src = {};
+    // 病床：実数（医療施設調査）優先／無ければ 病院数×全国平均病床186
     var AVG_HOSP_BEDS = 186;
-    var beds = Math.round(e.facilities.hospital * AVG_HOSP_BEDS);
+    var bedsReal = (R.beds != null);
+    var beds = bedsReal ? R.beds : Math.round(e.facilities.hospital * AVG_HOSP_BEDS);
+    src.beds = bedsReal ? 'real' : 'est';
     var natBeds = (nat.hospital || 0) * AVG_HOSP_BEDS;
     var bedsPerEld = (beds > 0 && e.elderlyN > 0) ? Math.round(e.elderlyN / beds) : 0;
     var bedsFill = (beds > 0 && natBeds > 0 && e.elderlyN > 0)
       ? Math.round((beds / e.elderlyN) / (natBeds / natEld) * 100) : 0;
-    // 在宅療養支援診療所（推計）≒一般診療所の約14%（全国≈15,000）
-    var zaishien = Math.round(e.facilities.clinic * 0.14);
+    // 在宅療養支援診療所：実数優先／無ければ 一般診療所の約14%
+    var zaiReal = (R.zaishien != null);
+    var zaishien = zaiReal ? R.zaishien : Math.round(e.facilities.clinic * 0.14);
+    src.zaishien = zaiReal ? 'real' : 'est';
     var natZai = Math.round((nat.clinic || 0) * 0.14);
     var zaishienFill = (natZai > 0 && e.elderlyN > 0)
       ? Math.round((zaishien / e.elderlyN) / (natZai / natEld) * 100) : 0;
-    // 訪問看護ステーション（推計）≒介護事業所の約6.5%（全国≈15,000）
-    var houkan = Math.round(e.facilities.kaigo * 0.065);
-    // 無医地区リスク（代理指標・公式の「無医地区等調査」はデータ待ち）
-    //   住民あたり診療所が薄い × 小規模 × 高齢 → 医療空白＝参入余地が大きい
+    // 訪問看護ST：実数優先／無ければ 介護事業所の約6.5%
+    var houReal = (R.houkan != null);
+    var houkan = houReal ? R.houkan : Math.round(e.facilities.kaigo * 0.065);
+    src.houkan = houReal ? 'real' : 'est';
+    // 救急：実データのみ（無ければ null＝データ待ち）
+    var er2 = (R.er2 != null) ? R.er2 : null;
+    var er3 = (R.er3 != null) ? R.er3 : null;
+    var erReal = (er2 != null || er3 != null);
+    src.er = erReal ? 'real' : 'wait';
+    // 無医地区リスク：実データ（無医地区等調査）があれば存在・地区数で構成／無ければ代理指標
     var clinicSparse = nz(e.per.clinic, 900, 3200);
     var smallPop = nz(region.pop2020 || 0, 60, 3);
     var aged = nz(e.aging, 30, 44);
-    var muiRisk = Math.round(0.45 * clinicSparse + 0.30 * smallPop + 0.25 * aged);
+    var proxy = 0.45 * clinicSparse + 0.30 * smallPop + 0.25 * aged;
+    var muiReal = (R.mui != null || R.junmui != null);
+    var muiN = (R.mui != null) ? R.mui : null;
+    var junmui = (R.junmui != null) ? R.junmui : null;
+    var muiRisk;
+    if (muiReal) {
+      // 無医地区が有れば下限を引き上げ、地区数で加算（準無医は半掛け）
+      var cnt = (muiN || 0) + 0.5 * (junmui || 0);
+      muiRisk = Math.round(Math.min(100, Math.max(proxy, 45 + nz(cnt, 0, 6))));
+    } else {
+      muiRisk = Math.round(proxy);
+    }
+    src.mui = muiReal ? 'real' : 'est';
     return { beds: beds, bedsPerEld: bedsPerEld, bedsFill: bedsFill,
-             zaishien: zaishien, zaishienFill: zaishienFill, houkan: houkan, muiRisk: muiRisk };
+             zaishien: zaishien, zaishienFill: zaishienFill, houkan: houkan,
+             muiRisk: muiRisk, mui: muiN, junmui: junmui, muiReal: muiReal,
+             er2: er2, er3: er3, erReal: erReal, src: src };
   }
 
   // 承継母数（ロールアップ）：社福が細分化・小規模・後継難ほど厚い
@@ -446,17 +478,34 @@
              smallScale: Math.round(smallScale), score: score, bucket: bucket };
   }
 
-  // 産業再生余地：一次産業志向の地方 × 過疎度 × 担い手流出 → 素地スコア
-  //   （実額＝農業産出額・漁業・観光宿泊 の市区町村別はデータ待ち。ここは素地の代理指標）
+  // 産業再生余地：region.real に実額（農業産出額・漁業・観光宿泊）があれば実額ベース、
+  //   無ければ従来の素地代理指標（地方アーキタイプ×過疎度×担い手流出）にフォールバック。
   function industryPotential(region, e){
     var ind = REGION_IND[region.region] || REGION_IND['関東'];
+    var R = region.real || {};
+    var haveReal = (R.agri != null || R.fishery != null || R.tourism != null);
+    if (haveReal) {
+      var popTh = (region.pop2020 || 0);                     // 千人
+      var prodPer = popTh > 0 ? ((R.agri || 0) + (R.fishery || 0)) / popTh : 0; // 百万円/千人
+      var tourPer = popTh > 0 ? (R.tourism || 0) / popTh : 0;                    // 千人泊/千人
+      var prodScore = nz(prodPer, 20, 1200);                 // 住民千人あたり一次産業産出額
+      var tourScore = nz(tourPer, 0, 3000);
+      var rural = nz(region.pop2020 || 0, 60, 3);
+      var loss = nz(-(region.growth || 0), 0.2, 1.6);
+      var score = Math.round(0.46 * prodScore + 0.18 * tourScore + 0.18 * rural + 0.18 * loss);
+      return { archetype: ind.base, good: ind.good, prim: Math.round(prodScore),
+               score: Math.min(100, score), real: true,
+               agri: (R.agri != null ? R.agri : null),
+               fishery: (R.fishery != null ? R.fishery : null),
+               tourism: (R.tourism != null ? R.tourism : null) };
+    }
     var primaryWeight = { '北海道':95,'東北':82,'四国':80,'九州':78,'中国':70,'中部':55,'近畿':40,'関東':30 };
     var prim = primaryWeight[region.region] != null ? primaryWeight[region.region] : 55;
     var rural = nz(region.pop2020 || 0, 60, 3);              // 小規模ほど高
     var loss = nz(-(region.growth || 0), 0.2, 1.6);          // 人口減が速いほど高
     var workingThin = nz(e.working, 62, 48);                 // 生産年齢が薄いほど高
     var score = Math.round(0.34 * prim + 0.26 * rural + 0.20 * loss + 0.20 * workingThin);
-    return { archetype: ind.base, good: ind.good, prim: prim, score: Math.min(100, score) };
+    return { archetype: ind.base, good: ind.good, prim: prim, score: Math.min(100, score), real: false };
   }
 
   // 投資機会スコア（4軸の幾何平均 × 需要規模の実効係数）
@@ -470,10 +519,18 @@
     var durab = nz(ag2040, 28, 48);
     var size = nz(Math.log10(Math.max(1, e.care.total)), 2.3, 5.3);
     var D = Math.round(0.42 * intensity + 0.28 * durab + 0.30 * size);
-    // S 供給空白（充足率が全国比で薄い＝高い ＋ 無医地区リスク）
+    // S 供給空白（充足率が全国比で薄い＝高い ＋ 無医地区リスク ＋ 救急空白[実データ時]）
     var thin = function(fill){ return nz(fill == null ? 100 : fill, 130, 55); };
-    var S = Math.round(0.30 * thin(sg.bedsFill) + 0.28 * thin(e.fill.kaigoBed) +
-                       0.22 * thin(e.fill.clinic) + 0.20 * sg.muiRisk);
+    var S;
+    if (sg.erReal) {
+      // 救急資源（二次救急＋救命救急センター）が少ないほど空白＝高い
+      var erThin = nz((sg.er2 || 0) + (sg.er3 || 0) * 1.5, 3, 0);
+      S = Math.round(0.26 * thin(sg.bedsFill) + 0.24 * thin(e.fill.kaigoBed) +
+                     0.18 * thin(e.fill.clinic) + 0.16 * sg.muiRisk + 0.16 * erThin);
+    } else {
+      S = Math.round(0.30 * thin(sg.bedsFill) + 0.28 * thin(e.fill.kaigoBed) +
+                     0.22 * thin(e.fill.clinic) + 0.20 * sg.muiRisk);
+    }
     var R = sp.score;      // 承継母数
     var I = ip.score;      // 産業再生余地
     // 需要が極端に小さい所は緩やかに減点（0.6〜1.0）

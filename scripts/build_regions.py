@@ -50,6 +50,61 @@ PREF_YOUTH = {
  "新潟県":10.8,"徳島県":10.6,"高知県":10.5,"青森県":10.0,"秋田県":9.2,
 }
 
+# ── 実データ取り込み（任意・後入れ） ─────────────────────────────
+# data/real/*.csv を 市区町村コード(id_muni2020, 例 "1100") を主キーに束ねる。
+# 各ファイル・各列は任意。存在する値だけを muni["real"] に載せ、無い分は
+# engine.js 側で従来の代理指標（推計）へ自動フォールバックする。
+REAL_DIR = os.path.join("data", "real")
+REAL_FILES = {
+    # 厚労省 医療施設調査（静態）市区町村編：病床数・在宅療養支援診療所・訪問看護ST
+    "medical_facilities.csv": ["beds", "zaishien", "houkan", "hospital", "clinic"],
+    # 厚労省 無医地区等調査：無医地区数・準無医地区数・対象人口
+    "mui.csv":                ["mui", "junmui", "muiPop"],
+    # 各都道府県 救急告示リスト：二次救急(告示)施設数・救命救急センター数
+    "emergency.csv":          ["er2", "er3"],
+    # 農林業/漁業センサス・観光統計：農業産出額(百万円)・漁業(百万円)・延べ宿泊(千人泊)
+    "industry.csv":           ["agri", "fishery", "tourism"],
+}
+
+def _num(s):
+    s = (s or "").strip().replace(",", "")
+    if s == "" or s.upper() in ("NA", "-", "…", "X"):
+        return None
+    try:
+        v = float(s)
+        return int(v) if v == int(v) else round(v, 2)
+    except ValueError:
+        return None
+
+def load_real():
+    """data/real/*.csv を code(id_muni2020)で束ねて返す: {code:{field:value}}。"""
+    real = {}
+    if not os.path.isdir(REAL_DIR):
+        return real
+    loaded = []
+    for fname, fields in REAL_FILES.items():
+        path = os.path.join(REAL_DIR, fname)
+        if not os.path.exists(path):
+            continue
+        n = 0
+        for row in csv.DictReader(open(path, encoding="utf-8-sig")):
+            code = (row.get("code") or row.get("id_muni2020") or "").strip()
+            if not code:
+                continue
+            d = real.setdefault(code, {})
+            got = False
+            for k in fields:
+                v = _num(row.get(k))
+                if v is not None:
+                    d[k] = v; got = True
+            if got:
+                n += 1
+        loaded.append("%s:%d" % (fname, n))
+    real = {c: d for c, d in real.items() if d}   # 値の無い行(空dict)は除外
+    if loaded:
+        print("real ingested ->", ", ".join(loaded), "| muni with data:", len(real))
+    return real
+
 def load_rows():
     if not os.path.exists(SRC_LOCAL):
         os.makedirs("data", exist_ok=True)
@@ -87,6 +142,7 @@ def muni_aging(pref_aging, pop2020, growth):
 
 def build():
     rows=load_rows(); natl_pop=NATIONAL["pop2020"]
+    real=load_real()
     pref_agg={}
     for r in rows:
         a=pref_agg.setdefault(r["pref"],{"pop2020":0,"pop1980":0})
@@ -99,6 +155,7 @@ def build():
             "youth":PREF_YOUTH.get(pref,11.0),"growth":round(cagr(agg["pop1980"],agg["pop2020"],40),2),
             "facilities":facilities_for(agg["pop2020"],natl_pop)})
     municipalities=[]
+    pref_real={}
     for r in rows:
         meta=PREF_META.get(r["pref"])
         if not meta: continue
@@ -106,10 +163,36 @@ def build():
         aging=muni_aging(pref_aging,r["pop2020"],growth)
         youth=round(max(6.0,min(18.0, PREF_YOUTH.get(r["pref"],11.0)-(aging-pref_aging)*0.18)),1)
         disp=(r["name"]+"（"+r["gun"]+"）") if r["gun"] else r["name"]
-        municipalities.append({"name":r["name"],"disp":disp,"pref":r["pref"],"region":region,
+        m={"name":r["name"],"disp":disp,"pref":r["pref"],"region":region,
             "level":"muni","code":r["code"],"pop2020":round(r["pop2020"]/1000.0,1),
             "aging":aging,"youth":youth,"growth":growth,
-            "facilities":facilities_for(r["pop2020"],natl_pop)})
+            "facilities":facilities_for(r["pop2020"],natl_pop)}
+        rd=real.get(r["code"])
+        if rd:
+            m["real"]=rd
+            pa=pref_real.setdefault(r["pref"],{})
+            for k,v in rd.items():
+                pa[k]=pa.get(k,0)+v   # 県値＝管内市区町村の実データ合算
+        municipalities.append(m)
+    # 県レコードへ集計済み実データを付与
+    for p in prefectures:
+        pr=pref_real.get(p["name"])
+        if pr: p["real"]={k:(round(v,2) if isinstance(v,float) else v) for k,v in pr.items()}
+    # yomi（ひらがな・別工程で付与）は build で作らないため、既存 regions.json から引き継ぐ
+    OUT="data/regions.json"
+    if os.path.exists(OUT):
+        try:
+            old=json.load(open(OUT,encoding="utf-8"))
+            ym={m["code"]:m["yomi"] for m in old.get("municipalities",[]) if m.get("yomi")}
+            yp={p["name"]:p["yomi"] for p in old.get("prefectures",[]) if p.get("yomi")}
+            for m in municipalities:
+                if m["code"] in ym: m["yomi"]=ym[m["code"]]
+            for p in prefectures:
+                if p["name"] in yp: p["yomi"]=yp[p["name"]]
+            carried=sum(1 for m in municipalities if m.get("yomi"))
+            print("yomi carried over: %d/%d muni" % (carried,len(municipalities)))
+        except Exception as ex:
+            print("yomi carry skipped:", ex)
     out={"meta":{"title":"TAmJ 地域マクロ推計","generated":datetime.date.today().isoformat(),
         "coverage":{"prefectures":len(prefectures),"municipalities":len(municipalities)},
         "note":"人口・長期変化率は国勢調査（実測）。高齢化率・施設数・現在値は独自推計（アンカー×補間×按分）。",
@@ -119,7 +202,9 @@ def build():
             "WAM 社会福祉法人現況報告集約2024（21,086法人）",
             "厚生労働省 介護サービス施設・事業所調査 / 衛生行政報告例",
             "市区町村総人口: keisukekondokk/female-population-japan（国勢調査由来）"],
-        "national":NATIONAL,"kamoku":SHINRYOU_KAMOKU,"laborForceRate":0.82},
+        "national":NATIONAL,"kamoku":SHINRYOU_KAMOKU,"laborForceRate":0.82,
+        "hasReal":bool(real),
+        "realFields":sorted({k for d in real.values() for k in d}) if real else []},
         "prefectures":prefectures,"municipalities":municipalities}
     json.dump(out,open("data/regions.json","w",encoding="utf-8"),ensure_ascii=False,separators=(",",":"))
     print(f"prefectures={len(prefectures)} municipalities={len(municipalities)} size={os.path.getsize('data/regions.json')//1024}KB")
