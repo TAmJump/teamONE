@@ -210,8 +210,8 @@
         <span class="tg">都市部・関東</span>
         <h3>人はいる。だが「入れる場所」が足りない。</h3>
         <p class="hyp">見立て：人材も入居者もいるが、施設が多すぎて空きがあるのでは？</p>
-        <p class="real">補正：量はあるが<b>噛み合っていない</b>。高単価施設は要介護3以上・医療依存を選別集客し、<b>単価に合わない軽度・在宅困難層には空きが無い</b>。見かけの施設数と、実際に入れる場所は別物。</p>
-        <div class="mini"><span><i>状態</i> 逼迫・選別</span><span><i>谷</i> 軽度・在宅困難が入れない</span></div>
+        <p class="real">補正：都市は<b>ベッドが需要を上回り、事業者が入居者を取り合う</b>（特に民間の高単価枠）。だから客単価の取れる要介護3以上・医療依存を選別集客し、<b>単価に合わない軽度・在宅困難層には空きが無い</b>。一方で低単価の公的枠は不足＝価格帯でねじれている。</p>
+        <div class="mini"><span><i>状態</i> 供給過剰・取り合い・選別</span><span><i>谷</i> 軽度・在宅困難・低所得</span></div>
       </div>
     </div>
     <p class="pull">問題は総量ではなく、<em>置き場所</em>と<em>束ね方</em>。</p>
@@ -221,7 +221,7 @@
   <section>
     <div class="kick">需給バランススコア</div>
     <h2>逆向きに傾いた二つの地域を、中央で補正する</h2>
-    <p class="sub">同じ物差し（需要と供給）で見ると、地方と都市は正反対に傾いている。連結法人は、片方の余剰をもう片方の不足へ回すことで、両方を中央へ寄せる。下のスイッチで「現状」と「連結補正後」を切り替えられる。</p>
+    <p class="sub">向きは正反対だ。<b>都市はベッド供給が需要を上回って取り合い</b>（作りすぎ＋高単価で重度を選別）、<b>過疎地は担い手・人口減で実効供給が縮み、要介護者はいるのに回せず撤退</b>。連結法人は、都市の余剰と過疎地の遊休・潜在需要を結び直し、両方を中央へ寄せる。下のスイッチで「現状」と「連結補正後」を切り替えられる。</p>
     <div class="balance">
       <div class="bal-head">
         <h3>需要（要介護）× 供給（施設・人材）の傾き</h3>
@@ -233,16 +233,16 @@
       <div class="meters">
         <div class="meter">
           <div class="lbl">過疎地・へき地</div>
-          <div class="cap">供給（施設）が需要を上回り、稼働が落ちて撤退—"供給余剰・需要枯れ"に傾く。</div>
+          <div class="cap">要介護者はいるのに、担い手・人口減で実効供給（回せるベッド）が縮み撤退—<b>潜在需要＞実効供給</b>に傾く。</div>
           <div class="axis"><div class="mid"></div><div class="midlbl">均衡</div><div class="fillbar supply" id="rSupply"></div><div class="fillbar demand" id="rDemand"></div></div>
         </div>
         <div class="meter">
           <div class="lbl">都市部・関東</div>
-          <div class="cap">需要（待機）が供給を上回り、入る場所が足りない—"需要超過・供給枯れ"に傾く。</div>
+          <div class="cap">ベッド供給が需要を上回り、事業者が入居者を取り合う—<b>供給＞需要（供給過剰・選別）</b>に傾く。</div>
           <div class="axis"><div class="mid"></div><div class="midlbl">均衡</div><div class="fillbar supply" id="cSupply"></div><div class="fillbar demand" id="cDemand"></div></div>
         </div>
       </div>
-      <div class="leg"><span><i style="background:var(--coral)"></i>需要（要介護・待機）</span><span><i style="background:var(--gold)"></i>供給（施設・人材）</span></div>
+      <div class="leg"><span><i style="background:var(--coral)"></i>需要（要介護・潜在）</span><span><i style="background:var(--gold)"></i>供給（施設ベッド・実効）</span></div>
       <p class="bal-note" id="balNote"></p>
     </div>
   </section>
@@ -325,10 +325,10 @@
 
 <script>
   var STATE={
-    now:{ rural:{demand:14, supply:40}, city:{demand:42, supply:12},
-      note:'<b>現状：</b>地方は供給が余り、都市は需要が余る。総量では相殺できても、地域を跨げないため両方が同時に苦しむ。連結法人は入居の広域マッチング・人材融通・資金の内部補填でこの断絶を橋渡しする。' },
-    fix:{ rural:{demand:26, supply:30}, city:{demand:24, supply:26},
-      note:'<b>連結補正後（試算）：</b>都市の待機を地方の空き定員へ回し、人材と資金を束ねて融通すると、両地域の傾きが中央へ寄る。均衡そのものへ届かせるのではなく、両端の落差を縮めるのが連結の仕事。' }
+    now:{ rural:{demand:40, supply:16}, city:{demand:16, supply:40},
+      note:'<b>現状：</b>都市はベッドが需要を上回り取り合い（作りすぎ＋高単価で重度を選別）。過疎地は担い手・人口減で実効供給が縮み、要介護者はいるのに回せず撤退——向きは逆。総量では相殺できても地域を跨げず、両方が同時に苦しむ。' },
+    fix:{ rural:{demand:34, supply:28}, city:{demand:28, supply:34},
+      note:'<b>連結補正後（試算）：</b>都市の余剰ベッドと選別を緩め、過疎地の遊休と潜在需要を連結で結ぶ。締め出される軽度・在宅困難層を地方の低単価キャパで受け、都市の重度は都市で。両端のギャップが中央へ寄る。' }
   };
   function applyMeter(prefix, conf){
     var d=document.getElementById(prefix+'Demand'), s=document.getElementById(prefix+'Supply');
