@@ -19,4 +19,4 @@
 （アンカー×日付補間×人口按分）であり確定値ではない。金額・利回りはすべて仮説モデル。
 
 ## 公開
-GitHub Pages（main / root）→ カスタムドメイン `teamone.tamjump.com`（`CNAME`）。DNSは Cloudflare 側で設定。
+GitHub Pages（main / root）→ カスタムドメイン `teamone.115en.com`（`CNAME`）。DNSは Cloudflare 側で設定。
